@@ -9,18 +9,16 @@
   <link rel="stylesheet" href="styles.css">
   <title>EVERYDAY — A little something for every day</title>
   
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js"></script>
-  
+  <!-- Added defer so scripts load after DOM elements exist -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="app.js" defer></script>
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="#" aria-label="EVERYDAY home">EVERYDAY<span>.</span></a>
     
     <div class="top-actions">
-      
       <div id="auth-container">
-        
         <div id="guest-view">
           <span class="local-pill"><i></i> Guest Mode</span>
           <button class="auth-btn login-trigger" id="openAuthModal">Sign In / Up</button>
