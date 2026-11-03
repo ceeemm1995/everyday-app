@@ -104,30 +104,45 @@
     }
   }
 
-  if (magicLinkForm) {
-    magicLinkForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!authEmailInput || !authStatusMessage) return;
+document.addEventListener('DOMContentLoaded', () => {
+  const magicForm = document.getElementById('magicLinkForm');
+  const emailInput = document.getElementById('authEmailInput');
+  const statusMsg = document.getElementById('authStatusMessage');
+
+  if (magicForm) {
+    magicForm.addEventListener('submit', async (e) => {
+      e.preventDefault(); // Prevents page reload / trailing ? in URL
       
-      const email = authEmailInput.value;
-      authStatusMessage.style.display = 'block';
-      authStatusMessage.textContent = 'Sending magic link...';
+      const email = emailInput ? emailInput.value.trim() : '';
+      if (!email) return;
+
+      if (statusMsg) {
+        statusMsg.style.display = 'block';
+        statusMsg.textContent = 'Sending magic link...';
+      }
 
       const { error } = await supabase.auth.signInWithOtp({
         email: email,
-        options: { emailRedirectTo: window.location.origin }
+        options: { 
+          emailRedirectTo: window.location.origin 
+        }
       });
 
       if (error) {
-        authStatusMessage.textContent = `Error: ${error.message}`;
-        authStatusMessage.style.color = '#ef4444';
+        if (statusMsg) {
+          statusMsg.textContent = `Error: ${error.message}`;
+          statusMsg.style.color = '#ef4444';
+        }
       } else {
-        authStatusMessage.textContent = '✨ Check your email! We sent you a magic login link.';
-        authStatusMessage.style.color = '#10b981';
-        authEmailInput.value = '';
+        if (statusMsg) {
+          statusMsg.textContent = '✨ Check your email! We sent you a magic login link.';
+          statusMsg.style.color = '#10b981';
+        }
+        if (emailInput) emailInput.value = '';
       }
     });
   }
+});
 
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
