@@ -9,23 +9,21 @@
   <link rel="stylesheet" href="styles.css">
   <title>EVERYDAY — A little something for every day</title>
   
-  <!-- Supabase JS CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="#" aria-label="EVERYDAY home">EVERYDAY<span>.</span></a>
     
     <div class="top-actions">
-      <!-- Dynamic Auth UI -->
+      
       <div id="auth-container">
-        <!-- Guest State -->
+        
         <div id="guest-view">
           <span class="local-pill"><i></i> Guest Mode</span>
           <button class="auth-btn login-trigger" id="openAuthModal">Sign In / Up</button>
         </div>
 
-        <!-- Logged-in State -->
         <div id="user-view" style="display: none;">
           <span class="user-pill"><i class="active-dot"></i> <span id="userEmailTag">user@everyday.app</span></span>
           <button class="auth-btn logout-trigger" id="logoutBtn">Log Out</button>
@@ -36,7 +34,6 @@
     </div>
   </header>
 
-  <!-- Auth Modal Dialog -->
   <dialog id="authModal" class="auth-modal">
     <div class="modal-content">
       <button class="close-modal" id="closeAuthModal">×</button>
