@@ -1,544 +1,279 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <meta name="theme-color" content="#0F172A">
-  <meta name="description" content="EVERYDAY — Discover, play, learn, create, and connect.">
-
-  <meta name="application-name" content="EVERYDAY">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="Make today a little more interesting with EVERYDAY.">
+  <title>EVERYDAY — Make today interesting</title>
 
   <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon-192.png">
   <link rel="stylesheet" href="./styles.css">
 
-  <title>EVERYDAY — A Little Something for Every Day</title>
-
-  <!-- Supabase Library -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-    defer>
-  </script>
-
-  <!-- Application JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./app.js" defer></script>
 </head>
 
 <body>
 
-  <!-- HEADER -->
   <header class="topbar">
-
-    <a class="brand" href="./" aria-label="EVERYDAY home">
-      EVERYDAY<span>.</span>
-    </a>
+    <a class="brand" href="./">EVERYDAY<span>.</span></a>
 
     <div class="top-actions">
-
-      <div id="auth-container">
-
-        <!-- GUEST VIEW -->
-        <div id="guest-view">
-
-          <span class="local-pill">
-            <i></i> Guest Mode
-          </span>
-
-          <button
-            type="button"
-            class="auth-btn login-trigger"
-            id="openAuthModal">
-            Sign In / Up
-          </button>
-
-        </div>
-
-        <!-- USER VIEW -->
-        <div id="user-view" style="display: none;">
-
-          <span class="user-pill">
-            <i class="active-dot"></i>
-            <span id="userEmailTag">user@everyday.app</span>
-          </span>
-
-          <button
-            type="button"
-            class="auth-btn logout-trigger"
-            id="logoutBtn">
-            Log Out
-          </button>
-
-        </div>
-
+      <div id="guest-view" class="local-pill">
+        <i></i> Guest Mode
       </div>
 
-      <button
-        type="button"
-        class="icon-button"
-        id="installButton"
-        hidden
-        aria-label="Install EVERYDAY app">
-        ＋ Install
+      <div id="user-view" class="top-actions" style="display:none">
+        <span id="userEmailTag" class="local-pill"></span>
+        <button id="logoutBtn" class="icon-button" type="button">Sign Out</button>
+      </div>
+
+      <button id="openAuthModal" class="icon-button" type="button">
+        Sign In / Up
       </button>
-
     </div>
-
   </header>
 
-
-  <!-- AUTHENTICATION MODAL -->
-  <dialog
-    id="authModal"
-    class="auth-modal"
-    aria-labelledby="authTitle">
-
-    <div class="modal-content">
-
-      <button
-        type="button"
-        class="close-modal"
-        id="closeAuthModal"
-        aria-label="Close sign-in dialog">
-        ×
-      </button>
-
-      <p class="eyebrow">YOUR EVERYDAY ACCOUNT</p>
-
-      <h3 id="authTitle">Sync your daily steps</h3>
-
-      <p class="muted">
-        Enter your email to receive a secure,
-        passwordless magic login link.
-      </p>
-
-      <form id="magicLinkForm" class="auth-form">
-
-        <label class="sr-only" for="authEmailInput">
-          Email address
-        </label>
-
-        <input
-          type="email"
-          id="authEmailInput"
-          name="email"
-          placeholder="name@example.com"
-          autocomplete="email"
-          required>
-
-        <button
-          type="submit"
-          class="primary-button full-width">
-          Send Magic Link →
-        </button>
-
-      </form>
-
-      <p
-        id="authStatusMessage"
-        class="notice"
-        style="display: none;"
-        aria-live="polite">
-      </p>
-
-    </div>
-
-  </dialog>
-
-
-  <!-- MAIN CONTENT -->
   <main class="shell">
 
-    <!-- INTRODUCTION -->
     <section class="intro">
-
-      <p class="eyebrow">
-        A LITTLE SOMETHING FOR EVERY DAY
-      </p>
+      <p class="eyebrow">A LITTLE SOMETHING FOR EVERY DAY</p>
 
       <h1>
-        Make today<br>
+        Make today
         <span>a little more interesting.</span>
       </h1>
 
       <p class="intro-copy">
-        Find something to try, learn something new,
-        or share a moment with others.
+        Find something to try, learn something new, or share a moment
+        with others.
       </p>
-
     </section>
 
-
-    <!-- MOOD SELECTION -->
-    <section
-      class="mood-section"
-      aria-labelledby="mood-title">
+    <section class="mood-section">
+      <p class="eyebrow">START WITH YOU</p>
 
       <div class="section-heading">
-
-        <div>
-          <p class="eyebrow">START WITH YOU</p>
-          <h2 id="mood-title">
-            What are you in the mood for?
-          </h2>
-        </div>
-
-        <button
-          type="button"
-          class="text-button"
-          id="surpriseButton">
+        <h2>What are you in the mood for?</h2>
+        <button id="surpriseButton" class="text-button" type="button">
           Surprise me ↗
         </button>
-
       </div>
 
-      <div class="mood-grid" id="moodGrid">
-
-        <button
-          type="button"
-          class="mood active"
-          data-mood="Curious"
-          aria-pressed="true">
-          <span>⌕</span> Curious
+      <div class="mood-grid">
+        <button class="mood active" type="button" data-mood="Curious">
+          <span>⌕</span>
+          Curious
         </button>
 
-        <button
-          type="button"
-          class="mood"
-          data-mood="Playful"
-          aria-pressed="false">
-          <span>◉</span> Playful
+        <button class="mood" type="button" data-mood="Playful">
+          <span>◉</span>
+          Playful
         </button>
 
-        <button
-          type="button"
-          class="mood"
-          data-mood="Creative"
-          aria-pressed="false">
-          <span>✎</span> Creative
+        <button class="mood" type="button" data-mood="Creative">
+          <span>✎</span>
+          Creative
         </button>
 
-        <button
-          type="button"
-          class="mood"
-          data-mood="Social"
-          aria-pressed="false">
-          <span>◎</span> Social
+        <button class="mood" type="button" data-mood="Social">
+          <span>◎</span>
+          Social
         </button>
 
-        <button
-          type="button"
-          class="mood"
-          data-mood="Productive"
-          aria-pressed="false">
-          <span>↗</span> Productive
+        <button class="mood" type="button" data-mood="Productive">
+          <span>↗</span>
+          Productive
         </button>
 
-        <button
-          type="button"
-          class="mood"
-          data-mood="Relaxed"
-          aria-pressed="false">
-          <span>☼</span> Relaxed
+        <button class="mood" type="button" data-mood="Relaxed">
+          <span>☼</span>
+          Relaxed
         </button>
-
       </div>
-
     </section>
 
-
-    <!-- FEATURE SECTION -->
     <section class="feature-grid">
 
-      <!-- ACTIVITY CARD -->
       <article class="activity-card">
-
         <div class="card-topline">
-
-          <span class="eyebrow" id="activityType">
-            TODAY'S ACTIVITY
-          </span>
-
-          <span class="time-tag" id="activityTime">
-            2–5 MIN
-          </span>
-
+          <p id="activityType" class="eyebrow">QUICK TRIVIA</p>
+          <span class="time-tag">5 MIN</span>
         </div>
 
-        <div
-          class="activity-symbol"
-          id="activitySymbol"
-          aria-hidden="true">
-          ⌕
-        </div>
+        <div id="activitySymbol" class="activity-symbol">⌕</div>
 
-        <h2 id="activityTitle">
-          A little knowledge goes a long way
-        </h2>
+        <h2 id="activityTitle">A little knowledge goes a long way</h2>
 
-        <p class="muted" id="activityDescription">
+        <p id="activityDescription" class="muted">
           Try a quick question and see what you know.
         </p>
 
         <div class="question-area">
-
-          <p class="question" id="activityQuestion">
+          <p id="activityQuestion" class="question">
             Which planet is known for its prominent rings?
           </p>
 
-          <div
-            class="answer-list"
-            id="answerList">
-          </div>
+          <div id="answerList" class="answer-list"></div>
 
-          <p
-            class="feedback"
-            id="answerFeedback"
-            aria-live="polite">
-          </p>
-
+          <p id="answerFeedback" class="feedback" aria-live="polite"></p>
         </div>
 
         <div class="card-footer">
+          <span id="progressText">A small moment for yourself</span>
 
-          <span id="progressText">
-            A small moment for yourself
-          </span>
-
-          <button
-            type="button"
-            class="primary-button"
-            id="nextActivity">
-            Next activity <span>→</span>
+          <button id="nextActivity" class="primary-button" type="button">
+            Next Activity →
           </button>
-
         </div>
-
       </article>
 
+      <div class="side-stack">
 
-      <!-- SIDE CONTENT -->
-      <aside class="side-stack">
-
-        <!-- COMPLETED ACTIVITIES -->
         <article class="streak-card">
-
           <p class="eyebrow">YOUR EVERYDAY</p>
+          <h3>Little steps count.</h3>
 
-          <h3>
-            Small steps<br>
-            count, too.
-          </h3>
-
-          <p class="muted" id="streakNotice">
+          <p id="streakNotice" class="muted">
             Your completed activities stay on this device in guest mode.
           </p>
 
           <div class="stat-row">
-
             <strong id="completedCount">0</strong>
-
             <span>activities completed</span>
-
           </div>
-
         </article>
 
-
-        <!-- DAILY THOUGHT -->
         <article class="prompt-card">
-
-          <p class="eyebrow">
-            A THOUGHT TO TAKE WITH YOU
-          </p>
+          <p class="eyebrow">A THOUGHT FOR TODAY</p>
 
           <p id="dailyThought">
             Curiosity is a good place to begin.
           </p>
 
-          <button
-            type="button"
-            class="text-button"
-            id="newThought">
+          <button id="newThought" class="text-button" type="button">
             Another thought ↗
           </button>
-
         </article>
 
-      </aside>
-
+      </div>
     </section>
 
-
-    <!-- COMMUNITY SECTION -->
     <section class="community-section">
+      <p class="eyebrow">A LITTLE MORE HUMAN</p>
 
       <div class="section-heading">
-
-        <div>
-          <p class="eyebrow">A LITTLE MORE TOGETHER</p>
-          <h2>Community corner</h2>
-        </div>
-
-        <span class="soft-label" id="communityLabel">
-          Preview · Local Mode
-        </span>
-
+        <h2>Share a moment with others.</h2>
       </div>
-
 
       <div class="community-grid">
 
-        <!-- SHARE A THOUGHT -->
         <article class="community-card">
+          <div class="community-icon">♡</div>
 
-          <div class="community-icon" aria-hidden="true">
-            ♡
-          </div>
-
-          <p class="eyebrow">
-            TODAY'S SHARED PROMPT
-          </p>
-
-          <h3>One good thing today</h3>
+          <h3>Leave a little thought.</h3>
 
           <p class="muted">
-            What's one small thing that made your day better?
-            Share your thought below.
+            Share something you learned, noticed, or thought about today.
           </p>
 
           <form id="thoughtForm">
-
-            <label
-              class="sr-only"
-              for="thoughtInput">
-              Your good thing today
-            </label>
-
+            <label class="sr-only" for="thoughtInput">Your thought</label>
             <input
-              type="text"
               id="thoughtInput"
-              name="thought"
-              maxlength="180"
-              placeholder="Something good that happened..."
-              required>
-
-            <button
-              type="submit"
-              class="primary-button">
-              Share →
-            </button>
-
+              type="text"
+              maxlength="300"
+              placeholder="Write something..."
+              required
+            >
+            <button class="primary-button" type="submit">Share</button>
           </form>
 
-          <p
-            class="notice"
-            id="thoughtNotice"
-            aria-live="polite">
-            Guest mode: Saved locally in your browser.
+          <p class="notice">
+            Your thought is saved on this device in guest mode.
           </p>
-
         </article>
 
-
-        <!-- COMMUNITY WALL -->
         <article class="community-card community-list">
+          <div class="community-icon">✧</div>
 
-          <p class="eyebrow">COMMUNITY WALL</p>
+          <h3>Community wall</h3>
 
-          <h3>Little moments</h3>
+          <p class="muted">Small thoughts from everyday people.</p>
 
-          <div id="communityWall">
-
-            <div class="wall-item">
-
-              <span class="avatar">A</span>
-
-              <p>
-                <strong>Alex</strong><br>
-                <span class="muted">
-                  Had coffee with an old friend.
-                </span>
-              </p>
-
-            </div>
-
-            <div class="wall-item">
-
-              <span class="avatar">J</span>
-
-              <p>
-                <strong>Jamie</strong><br>
-                <span class="muted">
-                  Finally finished a book I started.
-                </span>
-              </p>
-
-            </div>
-
-            <div class="wall-item">
-
-              <span class="avatar">S</span>
-
-              <p>
-                <strong>Sam</strong><br>
-                <span class="muted">
-                  Took a walk and noticed the sunset.
-                </span>
-              </p>
-
-            </div>
-
-          </div>
-
+          <div id="communityWall"></div>
         </article>
 
       </div>
-
     </section>
 
-
-    <!-- PRINCIPLES -->
     <section class="principles">
-
       <div>
         <span>01</span>
-        <strong>Useful by design</strong>
-        <p>Small activities with a real-world benefit.</p>
+        <strong>Stay curious.</strong>
+        <p>There is always something new to discover.</p>
       </div>
 
       <div>
         <span>02</span>
-        <strong>Open to everyone</strong>
-        <p>A simple experience without unnecessary barriers.</p>
+        <strong>Keep it simple.</strong>
+        <p>Small moments can make an ordinary day better.</p>
       </div>
 
       <div>
         <span>03</span>
-        <strong>Better together</strong>
-        <p>Room to connect, participate and share.</p>
+        <strong>Stay connected.</strong>
+        <p>Share ideas and make room for other perspectives.</p>
       </div>
-
     </section>
+
+    <button id="installButton" class="primary-button" type="button" hidden>
+      Install EVERYDAY
+    </button>
 
   </main>
 
-
-  <!-- FOOTER -->
   <footer>
-
-    <a class="brand" href="./" aria-label="EVERYDAY home">
-      EVERYDAY<span>.</span>
-    </a>
-
-    <p>
-      Made for the everyday moments.
-      <span>Version 0.2</span>
-    </p>
-
+    <a class="brand" href="./">EVERYDAY<span>.</span></a>
+    <p>Make today a little more interesting. <span>Made for everyday.</span></p>
   </footer>
+
+  <dialog id="authModal">
+    <div class="activity-card">
+      <div class="card-topline">
+        <p class="eyebrow">WELCOME TO EVERYDAY</p>
+        <button id="closeAuthModal" class="icon-button" type="button">
+          Close
+        </button>
+      </div>
+
+      <h2>Sign in or create an account.</h2>
+
+      <p class="muted">
+        Enter your email and we'll send you a secure sign-in link.
+      </p>
+
+      <form id="magicLinkForm">
+        <label for="authEmailInput">Email address</label>
+
+        <input
+          id="authEmailInput"
+          type="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+          required
+        >
+
+        <button class="primary-button" type="submit">
+          Send Magic Link
+        </button>
+
+        <p id="authStatusMessage" class="feedback" aria-live="polite"></p>
+      </form>
+    </div>
+  </dialog>
 
 </body>
 </html>
