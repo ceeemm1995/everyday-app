@@ -46,7 +46,7 @@
     Curious: [
       {
         type: "QUICK TRIVIA",
-        symbol: "✳",
+        symbol: "#",
         title: "A little knowledge goes a long way",
         description: "Try a quick question and see what you know.",
         question: "Which planet is known for its prominent rings?",
