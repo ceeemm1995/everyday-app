@@ -1,12 +1,18 @@
-(function () {
+(() => {
   "use strict";
 
+  // =====================================
   // SUPABASE CONFIGURATION
-  const SUPABASE_URL = "https://wyfzcbqmrultttncnenb.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5ZnpjYnFtcnVsdHR0bmNuZW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MDA5MTUsImV4cCI6MjEwOTI3NjkxNX0.c33pupDQsZeeBJuC_DUHQ9GXJoJc7Lo2Mwr5WBEfjPU";
+  // =====================================
+
+  const SUPABASE_URL =
+    "https://wyfzcbqmrultttncnenb.supabase.co";
+
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5ZnpjYnFtcnVsdHR0bmNuZW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MDA5MTUsImV4cCI6MjEwOTI3NjkxNX0.c33pupDQsZeeBJuC_DUHQ9GXJoJc7Lo2Mwr5WBEfjPU";
 
   if (!window.supabase) {
-    console.error("Supabase library was not loaded.");
+    console.error("Supabase library did not load.");
     return;
   }
 
@@ -15,17 +21,26 @@
     SUPABASE_ANON_KEY
   );
 
+  // =====================================
   // HELPER
-  const $ = (id) => document.getElementById(id);
+  // =====================================
 
-  // APP STATE
+  const $ = id => document.getElementById(id);
+
   let mood = "Curious";
   let activityIndex = 0;
-  let completed = Number(localStorage.getItem("everydayCompleted") || 0);
+
+  let completed = Number(
+    localStorage.getItem("everydayCompleted") || 0
+  );
+
   let currentUser = null;
   let deferredInstall = null;
 
+  // =====================================
   // DOM ELEMENTS
+  // =====================================
+
   const guestView = $("guest-view");
   const userView = $("user-view");
   const userEmailTag = $("userEmailTag");
@@ -41,8 +56,12 @@
   const authEmailInput = $("authEmailInput");
   const authStatusMessage = $("authStatusMessage");
 
+  // =====================================
   // ACTIVITIES
+  // =====================================
+
   const activities = {
+
     Curious: [
       {
         type: "QUICK TRIVIA",
@@ -54,9 +73,10 @@
         correct: "Saturn",
         explain: "Saturn is famous for its extensive ring system."
       },
+
       {
         type: "EVERYDAY KNOWLEDGE",
-        symbol: "⌁",
+        symbol: "⌕",
         title: "Think about the everyday",
         description: "A small question about the world around us.",
         question: "Which material is commonly used to make traditional glass?",
@@ -77,6 +97,7 @@
         correct: "A piano",
         explain: "A piano has musical keys, not door keys."
       },
+
       {
         type: "QUICK RIDDLE",
         symbol: "?",
@@ -105,6 +126,7 @@
         correct: "All of these",
         explain: "Creativity is about seeing possibilities. All are valid ideas!"
       },
+
       {
         type: "IMAGINATION PROMPT",
         symbol: "✧",
@@ -138,6 +160,7 @@
         correct: null,
         explain: "Everyone has a different idea of a good weekend. Share yours with someone!"
       },
+
       {
         type: "CONVERSATION STARTER",
         symbol: "♡",
@@ -171,6 +194,7 @@
         correct: null,
         explain: "Choose one action and give it ten focused minutes."
       },
+
       {
         type: "SMALL STEP",
         symbol: "✓",
@@ -204,6 +228,7 @@
         correct: null,
         explain: "Choose what feels helpful for you. A short pause counts."
       },
+
       {
         type: "GENTLE PROMPT",
         symbol: "☁",
@@ -220,9 +245,13 @@
         explain: "Noticing what restores you can help you make room for it."
       }
     ]
+
   };
 
+  // =====================================
   // DAILY THOUGHTS
+  // =====================================
+
   const thoughts = [
     "Curiosity is a good place to begin.",
     "Small progress is still progress.",
@@ -232,89 +261,10 @@
     "Make room for a little wonder."
   ];
 
-  // AUTHENTICATION MODAL
-  // This is the corrected login button code.
+  // =====================================
+  // AUTHENTICATION
+  // =====================================
 
-  if (openAuthModalBtn && authModal) {
-    openAuthModalBtn.addEventListener("click", (event) => {
-      event.preventDefault();
-
-      if (!authModal.open) {
-        authModal.showModal();
-      }
-    });
-  }
-
-  if (closeAuthModalBtn && authModal) {
-    closeAuthModalBtn.addEventListener("click", () => {
-      authModal.close();
-    });
-  }
-
-  if (authModal) {
-    authModal.addEventListener("click", (event) => {
-      if (event.target === authModal) {
-        authModal.close();
-      }
-    });
-  }
-
-  // MAGIC LINK LOGIN
-  if (magicLinkForm) {
-    magicLinkForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      const email = authEmailInput
-        ? authEmailInput.value.trim()
-        : "";
-
-      if (!email) {
-        if (authStatusMessage) {
-          authStatusMessage.style.display = "block";
-          authStatusMessage.textContent = "Please enter your email address.";
-        }
-        return;
-      }
-
-      if (authStatusMessage) {
-        authStatusMessage.style.display = "block";
-        authStatusMessage.style.color = "";
-        authStatusMessage.textContent = "Sending magic link...";
-      }
-
-      try {
-        const { error } = await supabase.auth.signInWithOtp({
-          email: email,
-          options: {
-            emailRedirectTo: window.location.origin
-          }
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        if (authStatusMessage) {
-          authStatusMessage.textContent =
-            "✨ Check your email! We sent you a magic login link.";
-          authStatusMessage.style.color = "#10b981";
-        }
-
-        authEmailInput.value = "";
-
-      } catch (error) {
-        console.error("Login error:", error);
-
-        if (authStatusMessage) {
-          authStatusMessage.style.display = "block";
-          authStatusMessage.textContent = "Error: " + error.message;
-          authStatusMessage.style.color = "#ef4444";
-        }
-      }
-    });
-  }
-
-  // CHECK LOGIN SESSION
   async function checkSession() {
     try {
       const {
@@ -331,13 +281,19 @@
     }
   }
 
-  // UPDATE LOGIN INTERFACE
   function updateAuthUI(session) {
+
     if (session) {
+
       currentUser = session.user;
 
-      if (guestView) guestView.style.display = "none";
-      if (userView) userView.style.display = "flex";
+      if (guestView) {
+        guestView.style.display = "none";
+      }
+
+      if (userView) {
+        userView.style.display = "flex";
+      }
 
       if (userEmailTag) {
         userEmailTag.textContent = currentUser.email;
@@ -355,10 +311,16 @@
       syncUserCloudData();
 
     } else {
+
       currentUser = null;
 
-      if (guestView) guestView.style.display = "flex";
-      if (userView) userView.style.display = "none";
+      if (guestView) {
+        guestView.style.display = "flex";
+      }
+
+      if (userView) {
+        userView.style.display = "none";
+      }
 
       if (streakNotice) {
         streakNotice.textContent =
@@ -367,20 +329,24 @@
     }
   }
 
-  // SYNC USER DATA
   async function syncUserCloudData() {
+
     if (!currentUser) return;
 
     try {
+
       const { data, error } = await supabase
         .from("user_profiles")
         .select("completed_count")
         .eq("id", currentUser.id)
-        .maybeSingle();
+        .single();
 
-      if (error) throw error;
+      if (error && error.code !== "PGRST116") {
+        throw error;
+      }
 
       if (data && data.completed_count > completed) {
+
         completed = data.completed_count;
 
         localStorage.setItem(
@@ -393,14 +359,13 @@
         }
 
       } else {
-        const { error: saveError } = await supabase
+
+        await supabase
           .from("user_profiles")
           .upsert({
             id: currentUser.id,
             completed_count: completed
           });
-
-        if (saveError) throw saveError;
       }
 
     } catch (error) {
@@ -408,10 +373,116 @@
     }
   }
 
-  // LOGOUT
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
+  // =====================================
+  // LOGIN MODAL
+  // =====================================
+
+  if (openAuthModalBtn && authModal) {
+    openAuthModalBtn.addEventListener("click", event => {
+      event.preventDefault();
+
+      if (!authModal.open) {
+        authModal.showModal();
+      }
+    });
+  }
+
+  if (closeAuthModalBtn && authModal) {
+    closeAuthModalBtn.addEventListener("click", () => {
+      authModal.close();
+    });
+  }
+
+  if (authModal) {
+    authModal.addEventListener("click", event => {
+      if (event.target === authModal) {
+        authModal.close();
+      }
+    });
+  }
+
+  // =====================================
+  // MAGIC LINK LOGIN
+  // =====================================
+
+  if (magicLinkForm) {
+
+    magicLinkForm.addEventListener("submit", async event => {
+
+      event.preventDefault();
+
+      const email = authEmailInput
+        ? authEmailInput.value.trim()
+        : "";
+
+      if (!email) return;
+
+      if (authStatusMessage) {
+        authStatusMessage.style.display = "block";
+        authStatusMessage.style.color = "#4f46e5";
+        authStatusMessage.textContent = "Sending magic link...";
+      }
+
+      const submitButton = magicLinkForm.querySelector(
+        'button[type="submit"]'
+      );
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Sending...";
+      }
+
       try {
+
+        const { error } = await supabase.auth.signInWithOtp({
+          email: email,
+          options: {
+            emailRedirectTo: window.location.origin
+          }
+        });
+
+        if (error) throw error;
+
+        if (authStatusMessage) {
+          authStatusMessage.style.color = "#10b981";
+          authStatusMessage.textContent =
+            "✨ Check your email! We sent you a magic login link.";
+        }
+
+        if (authEmailInput) {
+          authEmailInput.value = "";
+        }
+
+      } catch (error) {
+
+        console.error("Login error:", error);
+
+        if (authStatusMessage) {
+          authStatusMessage.style.color = "#ef4444";
+          authStatusMessage.textContent =
+            "Error: " + error.message;
+        }
+
+      } finally {
+
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = "Send Magic Link";
+        }
+      }
+    });
+  }
+
+  // =====================================
+  // LOGOUT
+  // =====================================
+
+  if (logoutBtn) {
+
+    logoutBtn.addEventListener("click", async () => {
+
+      try {
+
         const { error } = await supabase.auth.signOut();
 
         if (error) throw error;
@@ -424,39 +495,47 @@
     });
   }
 
-  // LISTEN FOR AUTH CHANGES
   supabase.auth.onAuthStateChange((_event, session) => {
     updateAuthUI(session);
   });
 
-  // GET CURRENT ACTIVITY
+  // =====================================
+  // CURRENT ACTIVITY
+  // =====================================
+
   function currentActivity() {
+
     const list = activities[mood];
+
     return list[activityIndex % list.length];
   }
 
-  // DISPLAY ACTIVITY
+  // =====================================
+  // RENDER ACTIVITY
+  // =====================================
+
   function renderActivity() {
-    const a = currentActivity();
+
+    const activity = currentActivity();
 
     if ($("activityType")) {
-      $("activityType").textContent = a.type;
+      $("activityType").textContent = activity.type;
     }
 
     if ($("activitySymbol")) {
-      $("activitySymbol").textContent = a.symbol;
+      $("activitySymbol").textContent = activity.symbol;
     }
 
     if ($("activityTitle")) {
-      $("activityTitle").textContent = a.title;
+      $("activityTitle").textContent = activity.title;
     }
 
     if ($("activityDescription")) {
-      $("activityDescription").textContent = a.description;
+      $("activityDescription").textContent = activity.description;
     }
 
     if ($("activityQuestion")) {
-      $("activityQuestion").textContent = a.question;
+      $("activityQuestion").textContent = activity.question;
     }
 
     if ($("answerFeedback")) {
@@ -474,7 +553,8 @@
 
     answerList.innerHTML = "";
 
-    a.answers.forEach((answer) => {
+    activity.answers.forEach(answer => {
+
       const button = document.createElement("button");
 
       button.className = "answer";
@@ -482,36 +562,40 @@
       button.type = "button";
 
       button.addEventListener("click", () => {
-        [...answerList.children].forEach((item) => {
+
+        [...answerList.children].forEach(item => {
           item.disabled = true;
           item.classList.remove("selected");
         });
 
         button.classList.add("selected");
 
-        if (a.correct === null) {
+        if (activity.correct === null) {
+
           if ($("answerFeedback")) {
-            $("answerFeedback").textContent = a.explain;
+            $("answerFeedback").textContent = activity.explain;
           }
 
           completeActivity();
 
-        } else if (answer === a.correct) {
+        } else if (answer === activity.correct) {
+
           button.classList.add("correct");
 
           if ($("answerFeedback")) {
             $("answerFeedback").textContent =
-              "That's right! " + a.explain;
+              "That's right! " + activity.explain;
           }
 
           completeActivity();
 
         } else {
+
           button.classList.add("wrong");
 
           if ($("answerFeedback")) {
             $("answerFeedback").textContent =
-              "Good try. " + a.explain;
+              "Good try. " + activity.explain;
           }
         }
       });
@@ -520,8 +604,12 @@
     });
   }
 
+  // =====================================
   // COMPLETE ACTIVITY
+  // =====================================
+
   function completeActivity() {
+
     completed++;
 
     localStorage.setItem(
@@ -539,6 +627,7 @@
     }
 
     if (currentUser) {
+
       supabase
         .from("user_profiles")
         .upsert({
@@ -553,14 +642,19 @@
     }
   }
 
+  // =====================================
   // CHANGE MOOD
-  function setMood(next) {
-    if (!activities[next]) return;
+  // =====================================
 
-    mood = next;
+  function setMood(nextMood) {
+
+    if (!activities[nextMood]) return;
+
+    mood = nextMood;
     activityIndex = 0;
 
-    document.querySelectorAll(".mood").forEach((button) => {
+    document.querySelectorAll(".mood").forEach(button => {
+
       button.classList.toggle(
         "active",
         button.dataset.mood === mood
@@ -570,29 +664,41 @@
     renderActivity();
   }
 
-  document.querySelectorAll(".mood").forEach((button) => {
+  document.querySelectorAll(".mood").forEach(button => {
+
     button.addEventListener("click", () => {
       setMood(button.dataset.mood);
     });
   });
 
+  // =====================================
   // NEXT ACTIVITY
+  // =====================================
+
   const nextBtn = $("nextActivity");
 
   if (nextBtn) {
+
     nextBtn.addEventListener("click", () => {
+
       activityIndex++;
+
       renderActivity();
     });
   }
 
+  // =====================================
   // SURPRISE ME
+  // =====================================
+
   const surpriseBtn = $("surpriseButton");
 
   if (surpriseBtn) {
+
     surpriseBtn.addEventListener("click", () => {
+
       const moods = Object.keys(activities).filter(
-        (item) => item !== mood
+        item => item !== mood
       );
 
       const randomMood =
@@ -602,11 +708,16 @@
     });
   }
 
-  // NEW DAILY THOUGHT
+  // =====================================
+  // DAILY THOUGHT
+  // =====================================
+
   const newThoughtBtn = $("newThought");
 
   if (newThoughtBtn) {
+
     newThoughtBtn.addEventListener("click", () => {
+
       const next =
         thoughts[Math.floor(Math.random() * thoughts.length)];
 
@@ -616,16 +727,24 @@
     });
   }
 
-  // DISPLAY COMPLETED COUNT
+  // =====================================
+  // COMPLETED COUNT
+  // =====================================
+
   if ($("completedCount")) {
     $("completedCount").textContent = completed;
   }
 
-  // COMMUNITY THOUGHT FORM
+  // =====================================
+  // COMMUNITY THOUGHTS
+  // =====================================
+
   const thoughtForm = $("thoughtForm");
 
   if (thoughtForm) {
-    thoughtForm.addEventListener("submit", async (event) => {
+
+    thoughtForm.addEventListener("submit", async event => {
+
       event.preventDefault();
 
       const input = $("thoughtInput");
@@ -664,16 +783,16 @@
       input.value = "";
 
       if (currentUser) {
+
         try {
+
           const { error } = await supabase
             .from("community_thoughts")
-            .insert([
-              {
-                user_id: currentUser.id,
-                text: value,
-                author: authorName
-              }
-            ]);
+            .insert([{
+              user_id: currentUser.id,
+              text: value,
+              author: authorName
+            }]);
 
           if (error) throw error;
 
@@ -683,6 +802,7 @@
           }
 
         } catch (error) {
+
           console.error("Community save error:", error);
 
           if ($("answerFeedback")) {
@@ -692,6 +812,7 @@
         }
 
       } else {
+
         if ($("answerFeedback")) {
           $("answerFeedback").textContent =
             "Your thought has been saved on this device.";
@@ -700,8 +821,12 @@
     });
   }
 
-  // ADD COMMUNITY WALL ITEM
+  // =====================================
+  // ADD WALL ITEM
+  // =====================================
+
   function addWallItem(text, letter, name = "You") {
+
     const communityWall = $("communityWall");
 
     if (!communityWall) return;
@@ -733,12 +858,16 @@
     communityWall.prepend(row);
   }
 
+  // =====================================
   // LOAD SAVED THOUGHTS
+  // =====================================
+
   const savedThoughts = JSON.parse(
     localStorage.getItem("everydayThoughts") || "[]"
   );
 
-  savedThoughts.forEach((item) => {
+  savedThoughts.forEach(item => {
+
     addWallItem(
       item.text,
       item.author
@@ -748,8 +877,12 @@
     );
   });
 
-  // PWA INSTALL PROMPT
-  window.addEventListener("beforeinstallprompt", (event) => {
+  // =====================================
+  // PWA INSTALLATION
+  // =====================================
+
+  window.addEventListener("beforeinstallprompt", event => {
+
     event.preventDefault();
 
     deferredInstall = event;
@@ -762,7 +895,9 @@
   const installBtn = $("installButton");
 
   if (installBtn) {
+
     installBtn.addEventListener("click", async () => {
+
       if (!deferredInstall) return;
 
       deferredInstall.prompt();
@@ -770,15 +905,23 @@
       await deferredInstall.userChoice;
 
       deferredInstall = null;
+
       installBtn.hidden = true;
     });
   }
 
+  // =====================================
   // INITIALIZE APP
+  // =====================================
+
   checkSession();
+
   renderActivity();
 
+  // =====================================
   // SERVICE WORKER
+  // =====================================
+
   if (
     "serviceWorker" in navigator &&
     (
@@ -786,11 +929,13 @@
       location.hostname === "localhost"
     )
   ) {
+
     window.addEventListener("load", () => {
+
       navigator.serviceWorker
         .register("./service-worker.js")
-        .catch((error) => {
-          console.error("Service worker registration failed:", error);
+        .catch(error => {
+          console.error("Service worker error:", error);
         });
     });
   }
