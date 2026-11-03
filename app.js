@@ -3,7 +3,7 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5ZnpjYnFtcnVsdHR0bmNuZW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MDA5MTUsImV4cCI6MjEwOTI3NjkxNX0.c33pupDQsZeeBJuC_DUHQ9GXJoJc7Lo2Mwr5WBEfjPU';
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Helper selector function defined first
+  // Helper selector function
   const $ = id => document.getElementById(id);
 
   let mood = "Curious";
@@ -96,7 +96,7 @@
     if (data && data.completed_count > completed) {
       completed = data.completed_count;
       localStorage.setItem("everydayCompleted", String(completed));
-      $("completedCount").textContent = completed;
+      if ($("completedCount")) $("completedCount").textContent = completed;
     } else {
       await supabase
         .from('user_profiles')
@@ -107,6 +107,8 @@
   if (magicLinkForm) {
     magicLinkForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!authEmailInput || !authStatusMessage) return;
+      
       const email = authEmailInput.value;
       authStatusMessage.style.display = 'block';
       authStatusMessage.textContent = 'Sending magic link...';
@@ -138,8 +140,8 @@
     updateAuthUI(session);
   });
 
-  if (openAuthModalBtn) openAuthModalBtn.addEventListener('click', () => authModal.showModal());
-  if (closeAuthModalBtn) closeAuthModalBtn.addEventListener('click', () => authModal.close());
+  if (openAuthModalBtn && authModal) openAuthModalBtn.addEventListener('click', () => authModal.showModal());
+  if (closeAuthModalBtn && authModal) closeAuthModalBtn.addEventListener('click', () => authModal.close());
 
   function currentActivity() {
     const list = activities[mood];
@@ -148,14 +150,17 @@
 
   function renderActivity() {
     const a = currentActivity();
-    $("activityType").textContent = a.type;
-    $("activitySymbol").textContent = a.symbol;
-    $("activityTitle").textContent = a.title;
-    $("activityDescription").textContent = a.description;
-    $("activityQuestion").textContent = a.question;
-    $("answerFeedback").textContent = "";
-    $("progressText").textContent = "A small moment for yourself";
-    $("answerList").innerHTML = "";
+    if ($("activityType")) $("activityType").textContent = a.type;
+    if ($("activitySymbol")) $("activitySymbol").textContent = a.symbol;
+    if ($("activityTitle")) $("activityTitle").textContent = a.title;
+    if ($("activityDescription")) $("activityDescription").textContent = a.description;
+    if ($("activityQuestion")) $("activityQuestion").textContent = a.question;
+    if ($("answerFeedback")) $("answerFeedback").textContent = "";
+    if ($("progressText")) $("progressText").textContent = "A small moment for yourself";
+    
+    const answerList = $("answerList");
+    if (!answerList) return;
+    answerList.innerHTML = "";
 
     a.answers.forEach(answer => {
       const b = document.createElement("button");
@@ -163,30 +168,30 @@
       b.textContent = answer;
       b.type = "button";
       b.addEventListener("click", () => {
-        [...$("answerList").children].forEach(x => { x.disabled = true; x.classList.remove("selected"); });
+        [...answerList.children].forEach(x => { x.disabled = true; x.classList.remove("selected"); });
         b.classList.add("selected");
 
         if (a.correct === null) {
-          $("answerFeedback").textContent = a.explain;
+          if ($("answerFeedback")) $("answerFeedback").textContent = a.explain;
           completeActivity();
         } else if (answer === a.correct) {
           b.classList.add("correct");
-          $("answerFeedback").textContent = "That's right! " + a.explain;
+          if ($("answerFeedback")) $("answerFeedback").textContent = "That's right! " + a.explain;
           completeActivity();
         } else {
           b.classList.add("wrong");
-          $("answerFeedback").textContent = "Good try. " + a.explain;
+          if ($("answerFeedback")) $("answerFeedback").textContent = "Good try. " + a.explain;
         }
       });
-      $("answerList").appendChild(b);
+      answerList.appendChild(b);
     });
   }
 
   function completeActivity() {
     completed++;
     localStorage.setItem("everydayCompleted", String(completed));
-    $("completedCount").textContent = completed;
-    $("progressText").textContent = "Completed — nice work!";
+    if ($("completedCount")) $("completedCount").textContent = completed;
+    if ($("progressText")) $("progressText").textContent = "Completed — nice work!";
 
     if (currentUser) {
       supabase.from('user_profiles').upsert({ id: currentUser.id, completed_count: completed });
@@ -201,43 +206,64 @@
   }
 
   document.querySelectorAll(".mood").forEach(b => b.addEventListener("click", () => setMood(b.dataset.mood)));
-  $("nextActivity").addEventListener("click", () => { activityIndex++; renderActivity(); });
-  $("surpriseButton").addEventListener("click", () => {
-    const moods = Object.keys(activities).filter(x => x !== mood);
-    setMood(moods[Math.floor(Math.random() * moods.length)]);
-  });
 
-  $("newThought").addEventListener("click", () => {
-    let next = thoughts[Math.floor(Math.random() * thoughts.length)];
-    $("dailyThought").textContent = next;
-  });
+  const nextBtn = $("nextActivity");
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => { 
+      activityIndex++; 
+      renderActivity(); 
+    });
+  }
 
-  $("completedCount").textContent = completed;
+  const surpriseBtn = $("surpriseButton");
+  if (surpriseBtn) {
+    surpriseBtn.addEventListener("click", () => {
+      const moods = Object.keys(activities).filter(x => x !== mood);
+      setMood(moods[Math.floor(Math.random() * moods.length)]);
+    });
+  }
 
-  $("thoughtForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const input = $("thoughtInput");
-    const value = input.value.trim();
-    if (!value) return;
+  const newThoughtBtn = $("newThought");
+  if (newThoughtBtn) {
+    newThoughtBtn.addEventListener("click", () => {
+      let next = thoughts[Math.floor(Math.random() * thoughts.length)];
+      if ($("dailyThought")) $("dailyThought").textContent = next;
+    });
+  }
 
-    const authorName = currentUser ? currentUser.email.split('@')[0] : "You";
-    
-    const saved = JSON.parse(localStorage.getItem("everydayThoughts") || "[]");
-    saved.unshift({ text: value, author: authorName, date: new Date().toISOString() });
-    localStorage.setItem("everydayThoughts", JSON.stringify(saved.slice(0, 10)));
-    
-    addWallItem(value, authorName.charAt(0).toUpperCase(), authorName);
-    input.value = "";
+  if ($("completedCount")) $("completedCount").textContent = completed;
 
-    if (currentUser) {
-      await supabase.from('community_thoughts').insert([{ user_id: currentUser.id, text: value, author: authorName }]);
-      $("answerFeedback").textContent = "Your thought has been shared to the community wall!";
-    } else {
-      $("answerFeedback").textContent = "Your thought has been saved on this device.";
-    }
-  });
+  const thoughtForm = $("thoughtForm");
+  if (thoughtForm) {
+    thoughtForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = $("thoughtInput");
+      if (!input) return;
+      const value = input.value.trim();
+      if (!value) return;
+
+      const authorName = currentUser ? currentUser.email.split('@')[0] : "You";
+      
+      const saved = JSON.parse(localStorage.getItem("everydayThoughts") || "[]");
+      saved.unshift({ text: value, author: authorName, date: new Date().toISOString() });
+      localStorage.setItem("everydayThoughts", JSON.stringify(saved.slice(0, 10)));
+      
+      addWallItem(value, authorName.charAt(0).toUpperCase(), authorName);
+      input.value = "";
+
+      if (currentUser) {
+        await supabase.from('community_thoughts').insert([{ user_id: currentUser.id, text: value, author: authorName }]);
+        if ($("answerFeedback")) $("answerFeedback").textContent = "Your thought has been shared to the community wall!";
+      } else {
+        if ($("answerFeedback")) $("answerFeedback").textContent = "Your thought has been saved on this device.";
+      }
+    });
+  }
 
   function addWallItem(text, letter, name = "You") {
+    const communityWall = $("communityWall");
+    if (!communityWall) return;
+    
     const row = document.createElement("div");
     row.className = "wall-item";
     const avatar = document.createElement("span");
@@ -252,7 +278,7 @@
     message.textContent = text;
     p.append(strong, document.createElement("br"), message);
     row.append(avatar, p);
-    $("communityWall").prepend(row);
+    communityWall.prepend(row);
   }
 
   JSON.parse(localStorage.getItem("everydayThoughts") || "[]").forEach(item => addWallItem(item.text, item.author ? item.author.charAt(0).toUpperCase() : "Y", item.author || "You"));
@@ -260,16 +286,19 @@
   window.addEventListener("beforeinstallprompt", e => {
     e.preventDefault();
     deferredInstall = e;
-    $("installButton").hidden = false;
+    if ($("installButton")) $("installButton").hidden = false;
   });
 
-  $("installButton").addEventListener("click", async () => {
-    if (!deferredInstall) return;
-    deferredInstall.prompt();
-    await deferredInstall.userChoice;
-    deferredInstall = null;
-    $("installButton").hidden = true;
-  });
+  const installBtn = $("installButton");
+  if (installBtn) {
+    installBtn.addEventListener("click", async () => {
+      if (!deferredInstall) return;
+      deferredInstall.prompt();
+      await deferredInstall.userChoice;
+      deferredInstall = null;
+      installBtn.hidden = true;
+    });
+  }
 
   checkSession();
   renderActivity();
