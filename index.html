@@ -5,190 +5,175 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <meta name="theme-color" content="#080611">
-  <meta name="description" content="Make today a little more interesting with EVERYDAY.">
+  <meta name="theme-color" content="#211a3b">
+  <meta
+    name="description"
+    content="Make today a little more interesting with EVERYDAY."
+  >
 
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>EVERYDAY — Make Something of Your Everyday</title>
 
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <title>EVERYDAY — Make today interesting</title>
-
+  <link rel="icon" href="./favicon.ico">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css">
 
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Application JavaScript -->
+  <!-- Main application -->
   <script src="./app.js" defer></script>
 </head>
 
 <body>
 
-  <!-- ==========================================
+  <!-- =================================
        HEADER
-  =========================================== -->
+  ================================== -->
 
   <header class="topbar">
 
-    <a class="brand" href="#home">
+    <a href="#home" class="brand">
       EVERYDAY<span>.</span>
     </a>
 
-    <nav class="main-nav" aria-label="Main navigation">
-      <a href="#home">Discover</a>
-      <a href="#activities">Explore</a>
-      <a href="#community">Community</a>
+    <nav class="main-nav">
+      <a href="#discover">Discover</a>
+      <a href="#play">Play</a>
       <a href="#my-space">My Space</a>
+      <a href="#community">Community</a>
     </nav>
 
     <div class="top-actions">
 
-      <div id="guest-view" class="local-pill">
-        <i></i>
-        Guest Mode
-      </div>
+      <span class="local-pill">
+        A little something every day
+      </span>
 
-      <div
-        id="user-view"
-        class="top-actions"
-        style="display: none;"
-      >
-        <span id="userEmailTag" class="local-pill"></span>
-
+      <!-- Guest account controls -->
+      <div id="guest-view">
         <button
-          id="logoutBtn"
-          class="icon-button"
           type="button"
+          class="text-button"
+          id="openAuthModal"
         >
-          Sign Out
+          Sign in
         </button>
       </div>
 
-      <button
-        id="openAuthModal"
-        class="icon-button"
-        type="button"
-      >
-        Sign In / Up
-      </button>
+      <!-- Signed-in account controls -->
+      <div id="user-view" hidden>
+        <span id="userEmailTag"></span>
+
+        <button
+          type="button"
+          class="text-button"
+          id="logoutBtn"
+        >
+          Log out
+        </button>
+      </div>
 
     </div>
-
   </header>
 
 
-  <!-- ==========================================
+  <!-- =================================
        MAIN CONTENT
-  =========================================== -->
+  ================================== -->
 
   <main class="shell" id="home">
 
 
-    <!-- ========================================
+    <!-- =================================
          INTRODUCTION
-    ========================================= -->
+    ================================== -->
 
     <section class="intro">
 
-      <p class="eyebrow">
-        A LITTLE SOMETHING FOR EVERY DAY
-      </p>
+      <span class="eyebrow">
+        YOUR EVERYDAY SPACE
+      </span>
 
       <h1>
-        Make today
-        <span>a little more interesting.</span>
+        Make something<br>
+        of your everyday.
       </h1>
 
       <p class="intro-copy">
-        Find something to try, learn something new,
-        or share a moment with others.
+        A little space to explore, play, learn, create,
+        and connect. Discover something new, one small
+        activity at a time.
       </p>
 
     </section>
 
 
-    <!-- ========================================
-         MOOD DISCOVERY
-    ========================================= -->
+    <!-- =================================
+         DISCOVER BY MOOD
+    ================================== -->
 
-    <section class="mood-section">
-
-      <p class="eyebrow">
-        START WITH YOU
-      </p>
+    <section class="discover-section" id="discover">
 
       <div class="section-heading">
-
-        <h2>
-          What are you in the mood for?
-        </h2>
-
-        <button
-          id="surpriseButton"
-          class="text-button"
-          type="button"
-        >
-          Surprise me ↗
-        </button>
-
+        <div>
+          <span class="eyebrow">START WITH HOW YOU FEEL</span>
+          <h2>What are you in the mood for?</h2>
+        </div>
       </div>
 
       <div class="mood-grid">
 
         <button
-          class="mood active"
           type="button"
-          data-mood="Curious"
+          class="mood"
+          data-mood="curious"
         >
-          <span>⌕</span>
+          <span>🔎</span>
           Curious
         </button>
 
         <button
-          class="mood"
           type="button"
-          data-mood="Playful"
+          class="mood"
+          data-mood="playful"
         >
-          <span>◉</span>
+          <span>🎲</span>
           Playful
         </button>
 
         <button
-          class="mood"
           type="button"
-          data-mood="Creative"
+          class="mood"
+          data-mood="creative"
         >
-          <span>✎</span>
+          <span>🎨</span>
           Creative
         </button>
 
         <button
-          class="mood"
           type="button"
-          data-mood="Social"
+          class="mood"
+          data-mood="social"
         >
-          <span>◎</span>
+          <span>💬</span>
           Social
         </button>
 
         <button
-          class="mood"
           type="button"
-          data-mood="Productive"
+          class="mood"
+          data-mood="productive"
         >
-          <span>↗</span>
+          <span>🎯</span>
           Productive
         </button>
 
         <button
-          class="mood"
           type="button"
-          data-mood="Relaxed"
+          class="mood"
+          data-mood="relaxed"
         >
-          <span>☼</span>
+          <span>🌙</span>
           Relaxed
         </button>
 
@@ -197,54 +182,57 @@
     </section>
 
 
-    <!-- ========================================
-         ACTIVITIES
-    ========================================= -->
+    <!-- =================================
+         ACTIVITY AND SIDE CARDS
+    ================================== -->
 
-    <section class="feature-grid" id="activities">
+    <section class="feature-grid" id="play">
 
-      <!-- MAIN ACTIVITY -->
+      <!-- Main activity -->
 
       <article class="activity-card">
 
         <div class="card-topline">
-
-          <p id="activityType" class="eyebrow">
-            QUICK TRIVIA
-          </p>
-
-          <span class="time-tag">
-            5 MIN
+          <span class="eyebrow" id="activityType">
+            YOUR NEXT LITTLE DISCOVERY
           </span>
 
+          <button
+            type="button"
+            class="text-button"
+            id="surpriseButton"
+          >
+            Surprise me ↗
+          </button>
         </div>
 
-        <div id="activitySymbol" class="activity-symbol">
-          ⌕
+        <div class="activity-symbol" id="activitySymbol">
+          ✨
         </div>
 
         <h2 id="activityTitle">
-          A little knowledge goes a long way
+          Something interesting starts here.
         </h2>
 
-        <p id="activityDescription" class="muted">
-          Try a quick question and see what you know.
+        <p id="activityDescription">
+          Choose a mood above or let us surprise you
+          with a little activity.
         </p>
 
         <div class="question-area">
 
-          <p id="activityQuestion" class="question">
-            Which planet is known for its prominent rings?
+          <p id="activityQuestion">
+            Ready to explore something new?
           </p>
 
           <div
-            id="answerList"
             class="answer-list"
+            id="answerList"
           ></div>
 
           <p
             id="answerFeedback"
-            class="feedback"
+            class="answer-feedback"
             aria-live="polite"
           ></p>
 
@@ -252,16 +240,16 @@
 
         <div class="card-footer">
 
-          <span id="progressText">
-            A small moment for yourself
+          <span class="progress-label" id="progressText">
+            Your progress starts here
           </span>
 
           <button
-            id="nextActivity"
-            class="primary-button"
             type="button"
+            class="primary-button"
+            id="nextActivity"
           >
-            Next Activity →
+            Next activity →
           </button>
 
         </div>
@@ -269,58 +257,44 @@
       </article>
 
 
-      <!-- SIDE CARDS -->
+      <!-- Side cards -->
 
       <div class="side-stack">
 
-        <!-- PROGRESS -->
+        <!-- Progress -->
 
         <article class="streak-card">
 
-          <p class="eyebrow">
-            YOUR EVERYDAY
+          <span class="eyebrow">YOUR EVERYDAY PROGRESS</span>
+
+          <h2 id="completedCount">0</h2>
+
+          <p>Activities completed</p>
+
+          <p id="streakNotice">
+            Every little step counts.
           </p>
-
-          <h3>
-            Little steps count.
-          </h3>
-
-          <p id="streakNotice" class="muted">
-            Your completed activities stay on this device
-            in guest mode.
-          </p>
-
-          <div class="stat-row">
-
-            <strong id="completedCount">
-              0
-            </strong>
-
-            <span>
-              activities completed
-            </span>
-
-          </div>
 
         </article>
 
 
-        <!-- DAILY THOUGHT -->
+        <!-- Daily thought -->
 
         <article class="prompt-card">
 
-          <p class="eyebrow">
-            A THOUGHT FOR TODAY
-          </p>
+          <span class="eyebrow">A THOUGHT FOR TODAY</span>
+
+          <h2>Something to think about.</h2>
 
           <p id="dailyThought">
-            Curiosity is a good place to begin.
+            What is one small thing that made your day
+            a little better?
           </p>
 
           <button
-            id="newThought"
-            class="text-button"
             type="button"
+            class="text-button"
+            id="newThought"
           >
             Another thought ↗
           </button>
@@ -332,181 +306,98 @@
     </section>
 
 
-    <!-- ========================================
+    <!-- =================================
          MY SPACE
-    ========================================= -->
+    ================================== -->
 
     <section
-      class="my-space my-space-section"
+      class="my-space-section"
       id="my-space"
     >
 
-      <!-- SECTION INTRO -->
-
       <div class="section-heading">
-
         <div>
-
-          <p class="eyebrow">
-            YOUR PERSONAL SPACE
-          </p>
-
-          <h2>
-            Make room for yourself.
-          </h2>
-
-          <p class="muted">
-            Keep track of your thoughts, goals,
-            and discoveries.
-          </p>
-
+          <span class="eyebrow">YOUR PERSONAL SPACE</span>
+          <h2>My Space</h2>
         </div>
 
+        <p class="intro-copy">
+          A place to keep your thoughts, goals, and discoveries.
+        </p>
       </div>
 
 
-      <!-- ======================================
-           PROFILE
-      ======================================= -->
+      <div class="my-space-grid">
 
-      <article class="profile-card">
+        <!-- PROFILE -->
 
-        <div class="profile-header">
+        <article class="profile-card">
 
-          <div
-            class="profile-avatar"
-            aria-hidden="true"
-          >
-            ✧
-          </div>
+          <span class="eyebrow">YOUR PROFILE</span>
 
-          <div class="profile-details">
+          <h3>Your little corner of EVERYDAY.</h3>
 
-            <p class="eyebrow">
-              YOUR PROFILE
-            </p>
+          <p>
+            Choose a nickname and tell the community
+            a little about yourself.
+          </p>
 
-            <h3 id="profileNickname">
-              Your everyday identity
-            </h3>
+          <form id="profileForm">
+
+            <label for="nicknameInput">
+              Nickname
+            </label>
+
+            <input
+              type="text"
+              id="nicknameInput"
+              name="nickname"
+              placeholder="Choose your nickname"
+              maxlength="30"
+            >
+
+            <label for="profileBioInput">
+              About you
+            </label>
+
+            <textarea
+              id="profileBioInput"
+              name="bio"
+              placeholder="A little introduction..."
+              rows="2"
+              maxlength="180"
+            ></textarea>
+
+            <button
+              type="submit"
+              class="primary-button"
+            >
+              Save profile
+            </button>
 
             <p
-              class="muted"
-              id="profileDescription"
-            >
-              Choose a nickname and make this space your own.
-            </p>
+              id="profileStatus"
+              aria-live="polite"
+            ></p>
 
-          </div>
+          </form>
 
-          <button
-            id="editProfileButton"
-            class="text-button"
-            type="button"
-          >
-            Edit profile ↗
-          </button>
-
-        </div>
-
-      </article>
-
-
-      <!-- ======================================
-           PROFILE EDITOR
-      ======================================= -->
-
-      <article
-        class="my-space-card"
-        id="profileEditor"
-      >
-
-        <p class="eyebrow">
-          PERSONAL DETAILS
-        </p>
-
-        <h3>
-          How would you like to be known?
-        </h3>
-
-        <form id="profileForm">
-
-          <label for="nicknameInput">
-            Nickname
-          </label>
-
-          <input
-            id="nicknameInput"
-            name="nickname"
-            type="text"
-            maxlength="30"
-            placeholder="Choose a nickname"
-            autocomplete="nickname"
-          >
-
-          <label for="profileBioInput">
-            A little about you
-          </label>
-
-          <textarea
-            id="profileBioInput"
-            name="bio"
-            maxlength="160"
-            rows="3"
-            placeholder="What are you interested in?"
-          ></textarea>
-
-          <button
-            id="saveProfileButton"
-            class="primary-button"
-            type="submit"
-          >
-            Save profile
-          </button>
-
-          <p
-            id="profileStatus"
-            class="feedback"
-            aria-live="polite"
-          ></p>
-
-        </form>
-
-      </article>
-
-
-      <!-- ======================================
-           PERSONAL DASHBOARD
-      ======================================= -->
-
-      <div class="my-space-grid">
+        </article>
 
 
         <!-- JOURNAL -->
 
-        <article class="my-space-card journal-card">
+        <article class="journal-card">
 
-          <div class="card-topline">
+          <span class="eyebrow">YOUR JOURNAL</span>
 
-            <p class="eyebrow">
-              YOUR JOURNAL
-            </p>
+          <h3>Thoughts worth keeping.</h3>
 
-            <span class="time-tag">
-              JUST FOR YOU
-            </span>
-
-          </div>
-
-          <h3>
-            A place for your thoughts.
-          </h3>
-
-          <p class="muted">
-            Write about your day, an idea, a discovery,
-            or anything you want to remember.
+          <p>
+            Write something for yourself.
+            You decide whether to keep it private
+            or share it.
           </p>
-
 
           <form id="journalForm">
 
@@ -515,195 +406,148 @@
             </label>
 
             <input
-              id="journalTitle"
-              name="title"
               type="text"
-              maxlength="100"
-              placeholder="Give this moment a title..."
+              id="journalTitle"
+              placeholder="Give your thought a title"
+              maxlength="80"
             >
 
             <label for="journalInput">
-              Your entry
+              Your thoughts
             </label>
 
             <textarea
               id="journalInput"
-              name="entry"
-              rows="6"
-              maxlength="5000"
-              placeholder="What's on your mind today?"
-              required
+              placeholder="Write whatever is on your mind..."
+              rows="4"
             ></textarea>
 
             <label for="journalPrivacy">
-              Who can see this entry?
+              Privacy
             </label>
 
-            <select
-              id="journalPrivacy"
-              name="journalPrivacy"
-            >
-
-              <option value="private" selected>
+            <select id="journalPrivacy">
+              <option value="private">
                 Private — only me
               </option>
 
               <option value="shared">
-                Shared — visible to the community
+                Shared — let others read this
               </option>
-
             </select>
 
-            <p class="notice">
-              Your journal is private by default.
-              You decide whether to share an entry.
-            </p>
-
             <button
-              id="saveJournalButton"
-              class="primary-button"
               type="submit"
+              class="primary-button"
             >
               Save journal entry
             </button>
 
             <p
               id="journalStatus"
-              class="feedback"
               aria-live="polite"
             ></p>
 
           </form>
 
-
-          <!-- JOURNAL ENTRIES -->
-
-          <div class="journal-list">
-
-            <h4>
-              Your entries
-            </h4>
-
-            <div id="journalEntries">
-
-              <p class="muted">
-                Your saved entries will appear here.
-              </p>
-
-            </div>
-
-          </div>
+          <div
+            class="journal-list"
+            id="journalEntries"
+          ></div>
 
         </article>
 
 
-        <!-- GOALS -->
+        <!-- GOAL CIRCLES -->
 
-        <article class="my-space-card goal-card">
+        <article class="goal-card">
 
-          <div class="card-topline">
+          <span class="eyebrow">GOAL CIRCLES</span>
 
-            <p class="eyebrow">
-              GOAL CIRCLES
-            </p>
+          <h3>Small steps, meaningful progress.</h3>
 
-            <span class="time-tag">
-              GROW TOGETHER
-            </span>
-
-          </div>
-
-          <h3>
-            Small steps, meaningful progress.
-          </h3>
-
-          <p class="muted">
-            Create a personal goal or work toward
-            something with other people.
+          <p>
+            Create a goal and work on it privately
+            or invite others to work toward it together.
           </p>
-
 
           <form id="goalForm">
 
             <label for="goalTitle">
-              What would you like to work on?
+              Goal title
             </label>
 
             <input
-              id="goalTitle"
-              name="title"
               type="text"
-              maxlength="100"
-              placeholder="e.g. Read one book this month"
-              required
+              id="goalTitle"
+              placeholder="What would you like to work on?"
+              maxlength="80"
             >
 
             <label for="goalDescription">
-              Add a little context
+              Description
             </label>
 
             <textarea
               id="goalDescription"
-              name="description"
+              placeholder="Describe your goal..."
               rows="3"
-              maxlength="500"
-              placeholder="What does this goal mean to you?"
             ></textarea>
 
             <label for="goalPrivacy">
-              Circle visibility
+              Circle type
             </label>
 
-            <select
-              id="goalPrivacy"
-              name="goalPrivacy"
-            >
-
-              <option value="private" selected>
+            <select id="goalPrivacy">
+              <option value="private">
                 Private — just me
               </option>
 
               <option value="shared">
-                Shared — invite others
+                Shared — work with others
               </option>
-
             </select>
 
             <button
-              id="createGoalButton"
-              class="primary-button"
               type="submit"
+              class="primary-button"
             >
               Create goal
             </button>
 
             <p
               id="goalStatus"
-              class="feedback"
               aria-live="polite"
             ></p>
 
           </form>
 
+          <div
+            class="goal-circles-grid"
+            id="goalCircles"
+          ></div>
 
-          <!-- GOAL LIST -->
+        </article>
 
-          <div class="goal-list">
 
-            <h4>
-              Your goals
-            </h4>
+        <!-- SAVED DISCOVERIES -->
 
-            <div
-              id="goalCircles"
-              class="goal-circles-grid"
-            >
+        <article class="saved-activities-card">
 
-              <p class="muted">
-                Your goals will appear here.
-              </p>
+          <span class="eyebrow">YOUR COLLECTION</span>
 
-            </div>
+          <h3>Saved discoveries.</h3>
+
+          <p>
+            Keep the activities, ideas, and conversations
+            you would like to revisit.
+          </p>
+
+          <div id="savedDiscoveries">
+
+            <p class="empty-state">
+              Your saved discoveries will appear here.
+            </p>
 
           </div>
 
@@ -711,131 +555,81 @@
 
       </div>
 
-
-      <!-- ======================================
-           SAVED DISCOVERIES
-      ======================================= -->
-
-      <article class="my-space-card saved-activities-card">
-
-        <p class="eyebrow">
-          YOUR COLLECTION
-        </p>
-
-        <h3>
-          Saved discoveries.
-        </h3>
-
-        <p class="muted">
-          Keep the activities, ideas, and conversations
-          you want to return to.
-        </p>
-
-        <div id="savedDiscoveries">
-
-          <p class="muted">
-            You haven't saved anything yet.
-          </p>
-
-        </div>
-
-      </article>
-
     </section>
 
 
-    <!-- ========================================
+    <!-- =================================
          COMMUNITY
-    ========================================= -->
+    ================================== -->
 
     <section
       class="community-section"
       id="community"
     >
 
-      <p class="eyebrow">
-        A LITTLE MORE HUMAN
-      </p>
-
       <div class="section-heading">
 
-        <h2>
-          Share a moment with others.
-        </h2>
+        <div>
+          <span class="eyebrow">A SPACE FOR SHARED THOUGHTS</span>
+          <h2>Community wall</h2>
+        </div>
+
+        <p class="intro-copy">
+          Sometimes a small thought can start
+          an interesting conversation.
+        </p>
 
       </div>
 
+
       <div class="community-grid">
-
-
-        <!-- SHARE A THOUGHT -->
 
         <article class="community-card">
 
-          <div class="community-icon">
-            ♡
-          </div>
+          <span class="eyebrow">THOUGHT EXCHANGE</span>
 
-          <h3>
-            Leave a little thought.
-          </h3>
+          <h3>Leave a little thought.</h3>
 
-          <p class="muted">
-            Share something you learned, noticed,
-            or thought about today.
+          <p>
+            Share an idea, a reflection, or something
+            interesting you discovered today.
           </p>
 
           <form id="thoughtForm">
 
-            <label
-              class="sr-only"
-              for="thoughtInput"
-            >
-              Your thought
-            </label>
-
-            <input
+            <textarea
               id="thoughtInput"
-              type="text"
-              maxlength="300"
-              placeholder="Write something..."
+              placeholder="What's on your mind today?"
+              rows="3"
+              maxlength="500"
               required
-            >
+            ></textarea>
 
             <button
-              class="primary-button"
               type="submit"
+              class="primary-button"
             >
-              Share
+              Share thought
             </button>
 
           </form>
 
-          <p class="notice">
-            Your thought is saved on this device
-            in guest mode.
-          </p>
-
         </article>
 
 
-        <!-- COMMUNITY WALL -->
+        <article class="community-card">
 
-        <article class="community-card community-list">
+          <span class="eyebrow">FROM THE COMMUNITY</span>
 
-          <div class="community-icon">
-            ✧
+          <h3>Interesting thoughts from others.</h3>
+
+          <div id="communityWall">
+
+            <p class="empty-state">
+              New thoughts and conversations will appear here.
+            </p>
+
           </div>
-
-          <h3>
-            Community wall
-          </h3>
-
-          <p class="muted">
-            Small thoughts from everyday people.
-          </p>
-
-          <div id="communityWall"></div>
 
         </article>
 
@@ -844,127 +638,99 @@
     </section>
 
 
-    <!-- ========================================
+    <!-- =================================
          EVERYDAY PRINCIPLES
-    ========================================= -->
+    ================================== -->
 
     <section class="principles">
 
       <div>
-
-        <span>01</span>
-
-        <strong>
-          Stay curious.
-        </strong>
-
+        <span class="eyebrow">EXPLORE</span>
+        <h3>Stay curious.</h3>
         <p>
-          There is always something new to discover.
+          Discover ideas and experiences beyond your usual routine.
         </p>
-
       </div>
 
-
       <div>
-
-        <span>02</span>
-
-        <strong>
-          Keep it simple.
-        </strong>
-
+        <span class="eyebrow">CREATE</span>
+        <h3>Make something.</h3>
         <p>
-          Small moments can make an ordinary day better.
+          Give your thoughts and imagination somewhere to go.
         </p>
-
       </div>
 
-
       <div>
-
-        <span>03</span>
-
-        <strong>
-          Stay connected.
-        </strong>
-
+        <span class="eyebrow">CONNECT</span>
+        <h3>Find your people.</h3>
         <p>
-          Share ideas and make room for other perspectives.
+          Meaningful conversations can begin with the smallest things.
         </p>
-
       </div>
 
     </section>
-
-
-    <!-- ========================================
-         INSTALL APPLICATION
-    ========================================= -->
-
-    <button
-      id="installButton"
-      class="primary-button"
-      type="button"
-      hidden
-    >
-      Install EVERYDAY
-    </button>
 
 
   </main>
 
 
-  <!-- ==========================================
+  <!-- =================================
        FOOTER
-  =========================================== -->
+  ================================== -->
 
   <footer>
 
-    <a class="brand" href="#home">
-      EVERYDAY<span>.</span>
-    </a>
+    <div>
+      <a href="#home" class="brand">
+        EVERYDAY<span>.</span>
+      </a>
+
+      <p>
+        Small activities. Less overthinking. More living.
+      </p>
+    </div>
 
     <p>
-      Make today a little more interesting.
-      <span>Made for everyday.</span>
+      Make something of your everyday.
+      <span>© 2026 EVERYDAY</span>
     </p>
 
   </footer>
 
 
-  <!-- ==========================================
+  <!-- =================================
        AUTHENTICATION MODAL
-  =========================================== -->
+  ================================== -->
 
-  <dialog id="authModal">
+  <div
+    class="modal-overlay hidden"
+    id="authModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="authTitle"
+  >
 
-    <div class="activity-card">
+    <div class="modal-content">
 
-      <div class="card-topline">
+      <button
+        type="button"
+        class="modal-close"
+        id="closeAuthModal"
+        aria-label="Close sign in window"
+      >
+        ×
+      </button>
 
-        <p class="eyebrow">
-          WELCOME TO EVERYDAY
-        </p>
+      <span class="eyebrow">WELCOME TO EVERYDAY</span>
 
-        <button
-          id="closeAuthModal"
-          class="icon-button"
-          type="button"
-        >
-          Close
-        </button>
-
-      </div>
-
-      <h2>
-        Sign in or create an account.
+      <h2 id="authTitle">
+        Your space is waiting.
       </h2>
 
-      <p class="muted">
-        Enter your email and we'll send you
-        a secure sign-in link.
+      <p>
+        Sign in using your email. We'll send you
+        a secure magic link.
       </p>
-
 
       <form id="magicLinkForm">
 
@@ -973,31 +739,43 @@
         </label>
 
         <input
-          id="authEmailInput"
           type="email"
+          id="authEmailInput"
           placeholder="you@example.com"
-          autocomplete="email"
           required
         >
 
         <button
-          class="primary-button"
           type="submit"
+          class="primary-button"
         >
-          Send Magic Link
+          Send magic link
         </button>
-
-        <p
-          id="authStatusMessage"
-          class="feedback"
-          aria-live="polite"
-        ></p>
 
       </form>
 
+      <p
+        id="authStatusMessage"
+        aria-live="polite"
+      ></p>
+
     </div>
 
-  </dialog>
+  </div>
+
+
+  <!-- =================================
+       PWA INSTALL BUTTON
+  ================================== -->
+
+  <button
+    type="button"
+    id="installButton"
+    class="install-button"
+    hidden
+  >
+    Install EVERYDAY
+  </button>
 
 
 </body>
