@@ -1729,12 +1729,23 @@ footer p {
     width: 100%;
   }
 }
-  /* SPACE BETWEEN EMAIL BOX AND MAGIC LINK BUTTON */
+ /* MAGIC LINK FORM SPACING */
 
-#authEmailInput {
-  margin-bottom: 25px !important;
+#magicLinkForm {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch;
 }
 
-#authEmailInput + .primary-button {
-  margin-top: 15px !important;
-} 
+#magicLinkForm label {
+  margin-bottom: 6px;
+}
+
+#magicLinkForm input {
+  margin-bottom: 18px !important;
+}
+
+#magicLinkForm button {
+  align-self: flex-start;
+  margin-top: 0 !important;
+}
