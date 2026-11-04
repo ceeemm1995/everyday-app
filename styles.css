@@ -1590,4 +1590,142 @@ footer p {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+/* =========================================
+   EVERYDAY — SINGLE PAGE NAVIGATION
+========================================= */
+
+/* Only the selected page is displayed */
+.page-view {
+  display: none;
+  animation: pageFadeIn 220ms ease;
+}
+
+.page-view.is-active {
+  display: block;
+}
+
+.page-view[hidden] {
+  display: none !important;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Active navigation item */
+.main-nav a[aria-current="page"] {
+  color: var(--purple-bright);
+  font-weight: 700;
+}
+
+.main-nav a[aria-current="page"]::after {
+  width: 100%;
+}
+
+/* Page headings */
+.page-heading {
+  max-width: 780px;
+  padding: 32px 0 25px;
+}
+
+.page-heading h1 {
+  margin: 9px 0 13px;
+}
+
+.page-heading .intro-copy {
+  margin-bottom: 0;
+}
+
+/* Explore page layout */
+.explore-layout,
+.community-page-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 285px;
+  align-items: start;
+  gap: 28px;
+}
+
+.explore-layout .feed-column,
+.community-page-layout .feed-column {
+  min-width: 0;
+}
+
+/* Discover navigation invitation */
+.mood-hint {
+  margin: 13px 0 10px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.explore-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+/* Discover invitation card */
+.discover-invitation .post-content > p {
+  margin-bottom: 17px;
+}
+
+/* Secondary activity counter */
+#exploreCompletedCount {
+  color: var(--purple-bright);
+}
+
+/* Ensure hidden profile editor stays hidden */
+.profile-editor[hidden] {
+  display: none !important;
+}
+
+/* Tablet */
+@media (max-width: 950px) {
+  .explore-layout,
+  .community-page-layout {
+    grid-template-columns: minmax(0, 1fr) 245px;
+    gap: 17px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+  .explore-layout,
+  .community-page-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .explore-layout .feed-sidebar,
+  .community-page-layout .feed-sidebar {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page-heading {
+    padding-top: 23px;
+  }
+}
+
+@media (max-width: 480px) {
+  .explore-layout .feed-sidebar,
+  .community-page-layout .feed-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .page-heading h1 {
+    font-size: 2.25rem;
+  }
+
+  .explore-link {
+    width: 100%;
+  }
 }
