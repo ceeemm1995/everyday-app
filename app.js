@@ -3,7 +3,7 @@
 
   // =====================================
   // EVERYDAY — APP.JS
-  // Version 0.2
+  // Version 0.3
   // =====================================
 
   // =====================================
@@ -14,7 +14,7 @@
     "https://wyfzcbqmrultttncnenb.supabase.co";
 
   const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJIUzI1NiIsInJlZiI6Ind5ZnpjYnFtcnVsdHR0bmNuZW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MDA5MTUsImV4cCI6MjEwOTI3NjkxNX0.c33pupDQsZeeBJuC_DUHQ9GXJoJc7Lo2Mwr5WBEfjPU";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5ZnpjYnFtcnVsdHR0bmNuZW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3MDA5MTUsImV4cCI6MjEwOTI3NjkxNX0.c33pupDQsZeeBJuC_DUHQ9GXJoJc7Lo2Mwr5WBEfjPU";
 
   if (!window.supabase) {
     console.error("Supabase library did not load.");
@@ -34,14 +34,19 @@
 
   const readLocal = (key, fallback = []) => {
     try {
-      return JSON.parse(localStorage.getItem(key)) ?? fallback;
+      const value = JSON.parse(localStorage.getItem(key));
+      return value ?? fallback;
     } catch {
       return fallback;
     }
   };
 
   const writeLocal = (key, value) => {
-    localStorage.setItem(key, JSON.stringify(value));
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.error("Local storage error:", error);
+    }
   };
 
   const showStatus = (id, message, type = "info") => {
@@ -63,8 +68,13 @@
   const createElement = (tag, className, text) => {
     const element = document.createElement(tag);
 
-    if (className) element.className = className;
-    if (text !== undefined) element.textContent = text;
+    if (className) {
+      element.className = className;
+    }
+
+    if (text !== undefined && text !== null) {
+      element.textContent = text;
+    }
 
     return element;
   };
@@ -72,15 +82,43 @@
   const formatDate = date => {
     if (!date) return "";
 
-    return new Date(date).toLocaleDateString(undefined, {
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "";
+    }
+
+    return parsedDate.toLocaleDateString(undefined, {
       year: "numeric",
       month: "short",
       day: "numeric"
     });
   };
 
+  const setButtonLoading = (button, loading, loadingText = "Saving...") => {
+    if (!button) return;
+
+    if (loading) {
+      button.dataset.originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = loadingText;
+    } else {
+      button.disabled = false;
+
+      if (button.dataset.originalText) {
+        button.textContent = button.dataset.originalText;
+        delete button.dataset.originalText;
+      }
+    }
+  };
+
+  // =====================================
+  // APP STATE
+  // =====================================
+
   let mood = "Curious";
   let activityIndex = 0;
+  let activityCompleted = false;
 
   let completed = Number(
     localStorage.getItem("everydayCompleted") || 0
@@ -89,6 +127,10 @@
   let currentUser = null;
   let currentNickname = "Everyday member";
   let deferredInstall = null;
+  let loadedAccountId = null;
+
+  const SAVED_KEY = "everydaySavedDiscoveries";
+  const THOUGHTS_KEY = "everydayThoughts";
 
   // =====================================
   // DOM ELEMENTS
@@ -229,7 +271,7 @@
     Productive: [
       {
         type: "LIFE CHALLENGE",
-        symbol: "↗",
+        symbol: "◎",
         title: "The ten-minute reset",
         description: "A tiny action can make the day feel lighter.",
         question: "Choose one small task you can finish in ten minutes.",
@@ -345,13 +387,20 @@
           "Your everyday activity is synced to your account.";
       }
 
-      if (authModal?.open) authModal.close();
+      if (authModal?.open) {
+        authModal.close();
+      }
 
-      if (previousUserId !== nextUserId) {
+      if (
+        previousUserId !== nextUserId ||
+        loadedAccountId !== nextUserId
+      ) {
+        loadedAccountId = nextUserId;
         loadAccountData();
       }
     } else {
       currentNickname = "Everyday member";
+      loadedAccountId = null;
 
       if (guestView) guestView.style.display = "flex";
       if (userView) userView.style.display = "none";
@@ -364,6 +413,9 @@
       if (previousUserId) {
         clearAccountDisplays();
       }
+
+      renderGuestDiscoveries();
+      renderProfileIdentity();
     }
   }
 
@@ -375,6 +427,7 @@
     await loadJournalEntries();
     await loadGoalCircles();
     await loadSavedDiscoveries();
+    await loadCommunityThoughts();
     await migrateGuestDiscoveries();
   }
 
@@ -382,7 +435,8 @@
     [
       "journalEntries",
       "goalCircles",
-      "savedDiscoveries"
+      "savedDiscoveries",
+      "communityWall"
     ].forEach(id => {
       const element = $(id);
       if (element) element.replaceChildren();
@@ -393,6 +447,14 @@
 
     if (nicknameInput) nicknameInput.value = "";
     if (bioInput) bioInput.value = "";
+
+    const bioDisplay = $("profileDescription");
+
+    if (bioDisplay) {
+      bioDisplay.textContent = "A little space to introduce yourself.";
+    }
+
+    currentNickname = "Everyday member";
   }
 
   // =====================================
@@ -431,9 +493,26 @@
           });
 
         if (saveError) throw saveError;
+      } else if (data && completed > Number(data.completed_count)) {
+        await saveCompletedCount();
       }
     } catch (error) {
       console.error("Cloud progress sync error:", error);
+    }
+  }
+
+  async function saveCompletedCount() {
+    if (!currentUser) return;
+
+    const { error } = await supabase
+      .from("user_profiles")
+      .upsert({
+        id: currentUser.id,
+        completed_count: completed
+      });
+
+    if (error) {
+      console.error("Progress save error:", error);
     }
   }
 
@@ -445,7 +524,9 @@
     openAuthModalBtn.addEventListener("click", event => {
       event.preventDefault();
 
-      if (!authModal.open) authModal.showModal();
+      if (!authModal.open) {
+        authModal.showModal();
+      }
     });
   }
 
@@ -457,7 +538,9 @@
 
   if (authModal) {
     authModal.addEventListener("click", event => {
-      if (event.target === authModal) authModal.close();
+      if (event.target === authModal) {
+        authModal.close();
+      }
     });
   }
 
@@ -470,6 +553,7 @@
       event.preventDefault();
 
       const email = authEmailInput?.value.trim() || "";
+
       if (!email) return;
 
       showStatus(
@@ -482,10 +566,7 @@
         'button[type="submit"]'
       );
 
-      if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = "Sending...";
-      }
+      setButtonLoading(submitButton, true, "Sending...");
 
       try {
         const { error } = await supabase.auth.signInWithOtp({
@@ -503,7 +584,9 @@
           "success"
         );
 
-        if (authEmailInput) authEmailInput.value = "";
+        if (authEmailInput) {
+          authEmailInput.value = "";
+        }
       } catch (error) {
         console.error("Login error:", error);
 
@@ -513,10 +596,7 @@
           "error"
         );
       } finally {
-        if (submitButton) {
-          submitButton.disabled = false;
-          submitButton.textContent = "Send Magic Link";
-        }
+        setButtonLoading(submitButton, false);
       }
     });
   }
@@ -527,6 +607,8 @@
 
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
+      logoutBtn.disabled = true;
+
       try {
         const { error } = await supabase.auth.signOut();
 
@@ -535,6 +617,7 @@
         window.location.reload();
       } catch (error) {
         console.error("Logout error:", error);
+        logoutBtn.disabled = false;
       }
     });
   }
@@ -571,83 +654,126 @@
         $("profileBioInput").value = data?.bio || "";
       }
 
-      renderProfileIdentity();
+      renderProfileIdentity(data?.bio || "");
     } catch (error) {
       console.error("Profile loading error:", error);
-      showStatus("profileStatus", "Could not load your profile.", "error");
+
+      showStatus(
+        "profileStatus",
+        "Could not load your profile.",
+        "error"
+      );
     }
   }
 
-  function renderProfileIdentity() {
+  function renderProfileIdentity(bio = "") {
     const nicknameDisplay = $("profileNickname");
-    const bioDisplay = $("profileBio");
+    const bioDisplay = $("profileDescription");
 
     if (nicknameDisplay) {
       nicknameDisplay.textContent = currentNickname;
     }
 
-    if (bioDisplay && !bioDisplay.textContent.trim()) {
-      bioDisplay.textContent = "A little space to introduce yourself.";
+    if (bioDisplay) {
+      bioDisplay.textContent =
+        bio.trim() || "A little space to introduce yourself.";
     }
   }
 
+  async function saveProfile() {
+    if (!currentUser) {
+      showStatus(
+        "profileStatus",
+        "Please sign in to save your profile.",
+        "error"
+      );
+      return;
+    }
+
+    const nickname = $("nicknameInput")?.value.trim() || "";
+    const bio = $("profileBioInput")?.value.trim() || "";
+
+    if (!nickname) {
+      showStatus(
+        "profileStatus",
+        "Please choose a nickname.",
+        "error"
+      );
+      return;
+    }
+
+    const saveButton = $("saveProfileButton");
+
+    setButtonLoading(saveButton, true);
+
+    try {
+      const { error } = await supabase
+        .from("user_profiles")
+        .upsert({
+          id: currentUser.id,
+          nickname,
+          bio,
+          completed_count: completed,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      currentNickname = nickname;
+      renderProfileIdentity(bio);
+
+      showStatus(
+        "profileStatus",
+        "Your profile has been saved!",
+        "success"
+      );
+
+      const editor = $("profileEditor");
+
+      if (editor) {
+        editor.hidden = true;
+      }
+    } catch (error) {
+      console.error("Profile save error:", error);
+
+      showStatus(
+        "profileStatus",
+        "Could not save your profile: " + error.message,
+        "error"
+      );
+    } finally {
+      setButtonLoading(saveButton, false);
+    }
+  }
+
+  const editProfileButton = $("editProfileButton");
+  const profileEditor = $("profileEditor");
+  const saveProfileButton = $("saveProfileButton");
+
+  if (editProfileButton && profileEditor) {
+    editProfileButton.addEventListener("click", () => {
+      profileEditor.hidden = !profileEditor.hidden;
+
+      if (!profileEditor.hidden) {
+        $("nicknameInput")?.focus();
+      }
+    });
+  }
+
+  if (saveProfileButton) {
+    saveProfileButton.addEventListener("click", event => {
+      event.preventDefault();
+      saveProfile();
+    });
+  }
+
+  // Support a form-based profile layout too, if present.
   const profileForm = $("profileForm");
 
   if (profileForm) {
-    profileForm.addEventListener("submit", async event => {
+    profileForm.addEventListener("submit", event => {
       event.preventDefault();
-
-      if (!currentUser) {
-        showStatus(
-          "profileStatus",
-          "Please sign in to save your profile.",
-          "error"
-        );
-        return;
-      }
-
-      const nickname = $("nicknameInput")?.value.trim() || "";
-      const bio = $("profileBioInput")?.value.trim() || "";
-
-      if (!nickname) {
-        showStatus(
-          "profileStatus",
-          "Please choose a nickname.",
-          "error"
-        );
-        return;
-      }
-
-      try {
-        const { error } = await supabase
-          .from("user_profiles")
-          .upsert({
-            id: currentUser.id,
-            nickname,
-            bio,
-            completed_count: completed,
-            updated_at: new Date().toISOString()
-          });
-
-        if (error) throw error;
-
-        currentNickname = nickname;
-        renderProfileIdentity();
-
-        showStatus(
-          "profileStatus",
-          "Your profile has been saved!",
-          "success"
-        );
-      } catch (error) {
-        console.error("Profile save error:", error);
-
-        showStatus(
-          "profileStatus",
-          "Could not save your profile: " + error.message,
-          "error"
-        );
-      }
+      saveProfile();
     });
   }
 
@@ -673,6 +799,7 @@
       renderJournalEntries(data || []);
     } catch (error) {
       console.error("Journal loading error:", error);
+
       showStatus(
         "journalStatus",
         "Could not load your journal entries.",
@@ -701,14 +828,16 @@
     entries.forEach(entry => {
       const card = createElement("article", "journal-entry-card");
 
-      const heading = createElement("h4", "", entry.title);
+      const heading = createElement("h4", "", entry.title || "Untitled entry");
+
       const date = createElement(
         "small",
         "muted",
         formatDate(entry.created_at)
       );
 
-      const content = createElement("p", "", entry.content);
+      const content = createElement("p", "", entry.content || "");
+
       const visibility = createElement(
         "span",
         "privacy-tag",
@@ -722,6 +851,7 @@
       );
 
       deleteButton.type = "button";
+
       deleteButton.addEventListener("click", () => {
         deleteJournalEntry(entry.id);
       });
@@ -775,6 +905,12 @@
         return;
       }
 
+      const submitButton = journalForm.querySelector(
+        'button[type="submit"]'
+      );
+
+      setButtonLoading(submitButton, true);
+
       try {
         const { error } = await supabase
           .from("journal_entries")
@@ -806,6 +942,8 @@
           "Could not save your journal: " + error.message,
           "error"
         );
+      } finally {
+        setButtonLoading(submitButton, false);
       }
     });
   }
@@ -833,7 +971,12 @@
       );
     } catch (error) {
       console.error("Journal delete error:", error);
-      showStatus("journalStatus", "Could not delete the entry.", "error");
+
+      showStatus(
+        "journalStatus",
+        "Could not delete the entry.",
+        "error"
+      );
     }
   }
 
@@ -845,7 +988,6 @@
     if (!currentUser) return;
 
     try {
-      // RLS returns the user's own goals and shared goals.
       const { data, error } = await supabase
         .from("goal_circles")
         .select("*")
@@ -856,7 +998,12 @@
       renderGoalCircles(data || []);
     } catch (error) {
       console.error("Goal loading error:", error);
-      showStatus("goalStatus", "Could not load Goal Circles.", "error");
+
+      showStatus(
+        "goalStatus",
+        "Could not load Goal Circles.",
+        "error"
+      );
     }
   }
 
@@ -880,7 +1027,12 @@
     goals.forEach(goal => {
       const card = createElement("article", "goal-circle-card");
 
-      const title = createElement("h4", "", goal.title);
+      const title = createElement(
+        "h4",
+        "",
+        goal.title || "Untitled goal"
+      );
+
       const description = createElement(
         "p",
         "",
@@ -911,6 +1063,7 @@
         );
 
         deleteButton.type = "button";
+
         deleteButton.addEventListener("click", () => {
           deleteGoalCircle(goal.id);
         });
@@ -938,6 +1091,7 @@
       }
 
       const title = $("goalTitle")?.value.trim() || "";
+
       const description =
         $("goalDescription")?.value.trim() || "";
 
@@ -960,6 +1114,12 @@
         );
         return;
       }
+
+      const submitButton = goalForm.querySelector(
+        'button[type="submit"]'
+      );
+
+      setButtonLoading(submitButton, true);
 
       try {
         const { error } = await supabase
@@ -990,6 +1150,8 @@
           "Could not save your goal: " + error.message,
           "error"
         );
+      } finally {
+        setButtonLoading(submitButton, false);
       }
     });
   }
@@ -1017,15 +1179,18 @@
       );
     } catch (error) {
       console.error("Goal delete error:", error);
-      showStatus("goalStatus", "Could not delete this goal.", "error");
+
+      showStatus(
+        "goalStatus",
+        "Could not delete this goal.",
+        "error"
+      );
     }
   }
 
   // =====================================
   // SAVED DISCOVERIES
   // =====================================
-
-  const SAVED_KEY = "everydaySavedDiscoveries";
 
   function getCurrentActivityData() {
     const activity = currentActivity();
@@ -1068,13 +1233,16 @@
       try {
         const { error } = await supabase
           .from("saved_discoveries")
-          .upsert({
-            user_id: currentUser.id,
-            ...activity
-          }, {
-            onConflict: "user_id,activity_title",
-            ignoreDuplicates: true
-          });
+          .upsert(
+            {
+              user_id: currentUser.id,
+              ...activity
+            },
+            {
+              onConflict: "user_id,activity_title",
+              ignoreDuplicates: true
+            }
+          );
 
         if (error) throw error;
 
@@ -1132,6 +1300,7 @@
       renderSavedDiscoveries(data || []);
     } catch (error) {
       console.error("Saved discoveries loading error:", error);
+
       showStatus(
         "discoveryStatus",
         "Could not load saved discoveries.",
@@ -1162,7 +1331,10 @@
     }
 
     items.forEach(item => {
-      const card = createElement("article", "saved-discovery-card");
+      const card = createElement(
+        "article",
+        "saved-discovery-card"
+      );
 
       const symbol = createElement(
         "span",
@@ -1173,7 +1345,7 @@
       const title = createElement(
         "h4",
         "",
-        item.activity_title
+        item.activity_title || "Saved activity"
       );
 
       const type = createElement(
@@ -1195,6 +1367,7 @@
       );
 
       removeButton.type = "button";
+
       removeButton.addEventListener("click", () => {
         removeDiscovery(item);
       });
@@ -1225,6 +1398,7 @@
         await loadSavedDiscoveries();
       } catch (error) {
         console.error("Remove discovery error:", error);
+
         showStatus(
           "discoveryStatus",
           "Could not remove this discovery.",
@@ -1233,7 +1407,8 @@
       }
     } else {
       const saved = readLocal(SAVED_KEY, []).filter(
-        entry => entry.activity_title !== item.activity_title
+        entry =>
+          entry.activity_title !== item.activity_title
       );
 
       writeLocal(SAVED_KEY, saved);
@@ -1245,6 +1420,7 @@
     if (!currentUser) return;
 
     const localItems = readLocal(SAVED_KEY, []);
+
     if (!localItems.length) return;
 
     try {
@@ -1266,6 +1442,7 @@
       if (error) throw error;
 
       localStorage.removeItem(SAVED_KEY);
+
       await loadSavedDiscoveries();
     } catch (error) {
       console.error("Guest discoveries sync error:", error);
@@ -1287,6 +1464,8 @@
 
   function renderActivity() {
     const activity = currentActivity();
+
+    activityCompleted = false;
 
     if ($("activityType")) {
       $("activityType").textContent = activity.type;
@@ -1313,7 +1492,8 @@
     }
 
     if ($("progressText")) {
-      $("progressText").textContent = "A small moment for yourself";
+      $("progressText").textContent =
+        "A small moment for yourself";
     }
 
     const answerList = $("answerList");
@@ -1323,10 +1503,11 @@
 
     activity.answers.forEach(answer => {
       const button = createElement("button", "answer", answer);
+
       button.type = "button";
 
       button.addEventListener("click", () => {
-        if (button.disabled) return;
+        if (button.disabled || activityCompleted) return;
 
         button.classList.add("selected");
 
@@ -1379,6 +1560,9 @@
   // =====================================
 
   function completeActivity() {
+    if (activityCompleted) return;
+
+    activityCompleted = true;
     completed++;
 
     localStorage.setItem(
@@ -1391,21 +1575,12 @@
     }
 
     if ($("progressText")) {
-      $("progressText").textContent = "Completed — nice work!";
+      $("progressText").textContent =
+        "Completed — nice work!";
     }
 
     if (currentUser) {
-      supabase
-        .from("user_profiles")
-        .upsert({
-          id: currentUser.id,
-          completed_count: completed
-        })
-        .then(({ error }) => {
-          if (error) {
-            console.error("Progress save error:", error);
-          }
-        });
+      saveCompletedCount();
     }
   }
 
@@ -1496,6 +1671,29 @@
   // COMMUNITY THOUGHTS
   // =====================================
 
+  function getLocalThoughts() {
+    return readLocal(THOUGHTS_KEY, []);
+  }
+
+  function saveLocalThought(thought) {
+    const saved = getLocalThoughts();
+
+    saved.unshift(thought);
+
+    writeLocal(
+      THOUGHTS_KEY,
+      saved.slice(0, 30)
+    );
+  }
+
+  function showCommunityStatus(message, type = "info") {
+    if ($("communityStatus")) {
+      showStatus("communityStatus", message, type);
+    } else if ($("answerFeedback")) {
+      showStatus("answerFeedback", message, type);
+    }
+  }
+
   const thoughtForm = $("thoughtForm");
 
   if (thoughtForm) {
@@ -1506,35 +1704,35 @@
       if (!input) return;
 
       const value = input.value.trim();
+
       if (!value) return;
+
+      if (value.length > 1000) {
+        showCommunityStatus(
+          "Please keep your thought under 1,000 characters.",
+          "error"
+        );
+        return;
+      }
 
       const authorName = currentUser
         ? currentNickname
         : "You";
 
-      const saved = readLocal("everydayThoughts", []);
-
-      saved.unshift({
+      const thought = {
         text: value,
         author: authorName,
         date: new Date().toISOString()
-      });
+      };
 
-      writeLocal(
-        "everydayThoughts",
-        saved.slice(0, 10)
+      const submitButton = thoughtForm.querySelector(
+        'button[type="submit"]'
       );
 
-      addWallItem(
-        value,
-        authorName.charAt(0).toUpperCase(),
-        authorName
-      );
+      setButtonLoading(submitButton, true, "Sharing...");
 
-      input.value = "";
-
-      if (currentUser) {
-        try {
+      try {
+        if (currentUser) {
           const { error } = await supabase
             .from("community_thoughts")
             .insert([{
@@ -1545,40 +1743,77 @@
 
           if (error) throw error;
 
-          if ($("answerFeedback")) {
-            $("answerFeedback").textContent =
-              "Your thought has been shared!";
-          }
-        } catch (error) {
-          console.error("Community save error:", error);
+          input.value = "";
 
-          if ($("answerFeedback")) {
-            $("answerFeedback").textContent =
-              "Saved on this device, but cloud sharing failed.";
-          }
+          await loadCommunityThoughts();
+
+          showCommunityStatus(
+            "Your thought has been shared!",
+            "success"
+          );
+        } else {
+          saveLocalThought(thought);
+
+          input.value = "";
+
+          renderLocalThoughts();
+
+          showCommunityStatus(
+            "Your thought has been saved on this device.",
+            "success"
+          );
         }
-      } else {
-        if ($("answerFeedback")) {
-          $("answerFeedback").textContent =
-            "Your thought has been saved on this device.";
-        }
+      } catch (error) {
+        console.error("Community save error:", error);
+
+        // Keep a local copy if cloud sharing fails.
+        saveLocalThought(thought);
+
+        input.value = "";
+
+        renderLocalThoughts();
+
+        showCommunityStatus(
+          "Saved on this device, but cloud sharing failed. Please try again later.",
+          "error"
+        );
+      } finally {
+        setButtonLoading(submitButton, false);
       }
     });
   }
 
   // =====================================
-  // ADD WALL ITEM
+  // COMMUNITY WALL
   // =====================================
 
-  function addWallItem(text, letter, name = "You") {
+  function addWallItem(text, letter, name = "You", date = null) {
     const communityWall = $("communityWall");
     if (!communityWall) return;
 
-    const row = createElement("div", "wall-item");
-    const avatar = createElement("span", "avatar", letter);
+    const row = createElement("article", "wall-item");
+
+    const avatar = createElement(
+      "span",
+      "avatar",
+      letter || "E"
+    );
+
+    const content = createElement("div", "wall-content");
+
     const paragraph = createElement("p");
-    const strong = createElement("strong", "", name);
-    const message = createElement("span", "muted", text);
+
+    const strong = createElement(
+      "strong",
+      "",
+      name || "Everyday member"
+    );
+
+    const message = createElement(
+      "span",
+      "muted",
+      text || ""
+    );
 
     paragraph.append(
       strong,
@@ -1586,25 +1821,140 @@
       message
     );
 
-    row.append(avatar, paragraph);
-    communityWall.prepend(row);
+    content.appendChild(paragraph);
+
+    if (date) {
+      const dateElement = createElement(
+        "small",
+        "muted",
+        formatDate(date)
+      );
+
+      content.appendChild(dateElement);
+    }
+
+    row.append(avatar, content);
+
+    communityWall.appendChild(row);
+  }
+
+  function renderLocalThoughts() {
+    const communityWall = $("communityWall");
+    if (!communityWall) return;
+
+    communityWall.replaceChildren();
+
+    const savedThoughts = getLocalThoughts();
+
+    if (!savedThoughts.length) {
+      communityWall.appendChild(
+        createElement(
+          "p",
+          "muted",
+          "The community is waiting for its first thought."
+        )
+      );
+      return;
+    }
+
+    savedThoughts.forEach(item => {
+      const author = item.author || "You";
+
+      addWallItem(
+        item.text,
+        author.charAt(0).toUpperCase(),
+        author,
+        item.date
+      );
+    });
+  }
+
+  async function loadCommunityThoughts() {
+    if (!currentUser) {
+      renderLocalThoughts();
+      return;
+    }
+
+    const communityWall = $("communityWall");
+    if (!communityWall) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("community_thoughts")
+        .select("id, text, author, created_at")
+        .order("created_at", { ascending: false })
+        .limit(30);
+
+      if (error) throw error;
+
+      renderCommunityWall(data || []);
+    } catch (error) {
+      console.error("Community loading error:", error);
+
+      // Show locally saved thoughts if cloud loading fails.
+      renderLocalThoughts();
+    }
+  }
+
+  function renderCommunityWall(cloudThoughts) {
+    const communityWall = $("communityWall");
+    if (!communityWall) return;
+
+    communityWall.replaceChildren();
+
+    const localThoughts = getLocalThoughts();
+
+    const combined = [...cloudThoughts];
+
+    // Include local thoughts that are not already in the cloud list.
+    localThoughts.forEach(localItem => {
+      const alreadyExists = combined.some(cloudItem =>
+        cloudItem.text === localItem.text &&
+        cloudItem.author === localItem.author
+      );
+
+      if (!alreadyExists) {
+        combined.push({
+          text: localItem.text,
+          author: localItem.author || "You",
+          created_at: localItem.date
+        });
+      }
+    });
+
+    combined.sort((a, b) => {
+      return new Date(b.created_at || b.date || 0) -
+        new Date(a.created_at || a.date || 0);
+    });
+
+    if (!combined.length) {
+      communityWall.appendChild(
+        createElement(
+          "p",
+          "muted",
+          "The community is waiting for its first thought."
+        )
+      );
+      return;
+    }
+
+    combined.slice(0, 30).forEach(item => {
+      const author = item.author || "Everyday member";
+
+      addWallItem(
+        item.text,
+        author.charAt(0).toUpperCase(),
+        author,
+        item.created_at || item.date
+      );
+    });
   }
 
   // =====================================
-  // LOAD SAVED THOUGHTS
+  // INITIAL COMMUNITY CONTENT
   // =====================================
 
-  const savedThoughts = readLocal("everydayThoughts", []);
-
-  savedThoughts.forEach(item => {
-    addWallItem(
-      item.text,
-      item.author
-        ? item.author.charAt(0).toUpperCase()
-        : "Y",
-      item.author || "You"
-    );
-  });
+  renderLocalThoughts();
 
   // =====================================
   // PWA INSTALLATION
@@ -1627,7 +1977,12 @@
       if (!deferredInstall) return;
 
       deferredInstall.prompt();
-      await deferredInstall.userChoice;
+
+      try {
+        await deferredInstall.userChoice;
+      } catch (error) {
+        console.error("Install prompt error:", error);
+      }
 
       deferredInstall = null;
       installBtn.hidden = true;
@@ -1640,6 +1995,8 @@
 
   renderGuestDiscoveries();
   renderActivity();
+  renderProfileIdentity();
+
   checkSession();
 
   // =====================================
