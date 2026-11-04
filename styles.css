@@ -1,10 +1,73 @@
 
-/* =================================
+/* =========================================
    EVERYDAY — MOBILE RESPONSIVENESS
-   Original typography and color palette preserved
-================================= */
+   Softer Indigo & Purple Edition
+   Original typography preserved
+========================================= */
 
-/* Prevent horizontal overflow */
+
+/* =========================================
+   01. COLOR PALETTE
+========================================= */
+
+:root {
+  --bg-main: #171329;
+  --bg-secondary: #211a3b;
+  --bg-tertiary: #2b2250;
+
+  --bg-card: rgba(48, 38, 79, 0.82);
+  --bg-card-hover: rgba(62, 48, 101, 0.94);
+
+  --purple-dark: #40316c;
+  --purple: #8060c9;
+  --purple-light: #ad91ed;
+  --purple-bright: #d0baff;
+
+  --indigo: #514b91;
+
+  --text-primary: #fbf8ff;
+  --text-secondary: #ded5f0;
+  --text-muted: #b0a4c9;
+
+  --border-color: rgba(198, 174, 255, 0.22);
+  --border-hover: rgba(210, 185, 255, 0.48);
+
+  --page-gradient:
+    linear-gradient(
+      135deg,
+      #171329 0%,
+      #211a3b 38%,
+      #302653 72%,
+      #49366f 100%
+    );
+
+  --accent-gradient:
+    linear-gradient(
+      135deg,
+      #51427f 0%,
+      #7560b2 48%,
+      #a17cde 100%
+    );
+
+  --card-gradient:
+    linear-gradient(
+      145deg,
+      rgba(64, 51, 100, 0.94),
+      rgba(39, 31, 66, 0.96)
+    );
+
+  --purple-glow:
+    0 0 35px rgba(163, 125, 235, 0.17);
+
+  --shadow-card:
+    0 18px 45px rgba(8, 5, 25, 0.20);
+}
+
+
+/* =========================================
+   02. GENERAL LAYOUT PROTECTION
+========================================= */
+
 * {
   box-sizing: border-box;
 }
@@ -27,14 +90,501 @@ button,
 textarea,
 select {
   max-width: 100%;
+  min-width: 0;
   font: inherit;
 }
 
-/* =================================
-   TABLETS AND SMALLER SCREENS
-================================= */
+
+/* =========================================
+   03. PAGE BACKGROUND
+========================================= */
+
+body {
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(126, 99, 190, 0.24),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 85% 35%,
+      rgba(112, 103, 190, 0.18),
+      transparent 38%
+    ),
+    linear-gradient(
+      135deg,
+      #171329,
+      #211a3b,
+      #302653,
+      #49366f
+    );
+
+  color: var(--text-primary);
+}
+
+
+/* =========================================
+   04. TOP NAVIGATION
+========================================= */
+
+.topbar {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.brand {
+  color: var(--text-primary);
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.local-pill {
+  border-color: var(--border-color);
+}
+
+
+/* =========================================
+   05. MAIN CONTENT
+========================================= */
+
+.shell {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.intro {
+  max-width: 780px;
+}
+
+.intro h1 {
+  color: var(--text-primary);
+}
+
+.intro-copy {
+  color: var(--text-secondary);
+}
+
+
+/* =========================================
+   06. SECTION HEADINGS
+========================================= */
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.section-heading h2 {
+  color: var(--text-primary);
+}
+
+.eyebrow {
+  color: var(--purple-light);
+}
+
+
+/* =========================================
+   07. MOOD BUBBLES
+========================================= */
+
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.mood {
+  margin: 0;
+  min-width: 0;
+
+  background: rgba(113, 91, 160, 0.20);
+
+  border: 1px solid rgba(205, 185, 255, 0.24);
+
+  border-radius: 20px;
+
+  transition:
+    transform 220ms ease,
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.mood:hover {
+  transform: translateY(-3px);
+
+  background: rgba(145, 116, 205, 0.28);
+
+  border-color: rgba(211, 190, 255, 0.48);
+
+  box-shadow: var(--purple-glow);
+}
+
+.mood span {
+  color: var(--purple-bright);
+}
+
+
+/* =========================================
+   08. FEATURE LAYOUT
+========================================= */
+
+.feature-grid {
+  display: grid;
+  gap: 20px;
+  margin: 25px 0 45px;
+}
+
+.side-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.activity-card,
+.streak-card,
+.prompt-card,
+.community-card {
+  min-width: 0;
+  overflow-wrap: break-word;
+
+  background: var(--card-gradient);
+
+  border: 1px solid var(--border-color);
+
+  box-shadow: var(--shadow-card);
+}
+
+
+/* =========================================
+   09. ACTIVITY CARD
+========================================= */
+
+.activity-card h2 {
+  color: var(--text-primary);
+}
+
+.activity-card p {
+  color: var(--text-secondary);
+}
+
+.activity-symbol {
+  background: rgba(173, 145, 237, 0.15);
+  border: 1px solid var(--border-color);
+  color: var(--purple-bright);
+}
+
+
+/* =========================================
+   10. QUESTION AND ANSWERS
+========================================= */
+
+.question-area {
+  background: rgba(24, 19, 47, 0.45);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+}
+
+.answer-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.answer {
+  min-width: 0;
+  overflow-wrap: break-word;
+
+  background: rgba(113, 91, 160, 0.16);
+
+  border: 1px solid var(--border-color);
+
+  color: var(--text-primary);
+
+  transition: 220ms ease;
+}
+
+.answer:hover {
+  background: rgba(145, 116, 205, 0.28);
+  border-color: var(--border-hover);
+}
+
+
+/* =========================================
+   11. BUTTONS
+========================================= */
+
+.primary-button {
+  background: var(--accent-gradient);
+
+  border: 1px solid rgba(222, 205, 255, 0.24);
+
+  color: #ffffff;
+
+  transition: 220ms ease;
+}
+
+.primary-button:hover {
+  filter: brightness(1.12);
+  transform: translateY(-2px);
+}
+
+.text-button {
+  color: var(--purple-bright);
+}
+
+
+/* =========================================
+   12. INPUTS AND TEXT AREAS
+========================================= */
+
+input,
+textarea,
+select {
+  background: rgba(29, 23, 53, 0.76);
+
+  border: 1px solid rgba(196, 174, 255, 0.28);
+
+  color: var(--text-primary);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+
+  border-color: var(--purple-light);
+
+  box-shadow:
+    0 0 0 3px rgba(173, 145, 237, 0.15);
+}
+
+
+/* =========================================
+   13. MY SPACE
+========================================= */
+
+.my-space-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.profile-card,
+.my-space-card,
+.journal-card,
+.goal-card,
+.saved-activities-card {
+  min-width: 0;
+
+  background: var(--card-gradient);
+
+  border: 1px solid var(--border-color);
+
+  box-shadow: var(--shadow-card);
+
+  overflow-wrap: break-word;
+}
+
+
+/* =========================================
+   14. COMPACT PROFILE
+========================================= */
+
+.profile-card {
+  padding: 17px 19px;
+  gap: 10px;
+}
+
+.profile-card h2,
+.profile-card h3 {
+  margin-bottom: 5px;
+}
+
+.profile-card p {
+  margin-top: 4px;
+  margin-bottom: 7px;
+  line-height: 1.45;
+}
+
+.profile-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 8px;
+}
+
+.profile-card input,
+.profile-card textarea {
+  padding: 10px 12px;
+  min-height: 40px;
+}
+
+.profile-card button {
+  padding: 9px 15px;
+}
+
+.my-space-section {
+  margin-bottom: 22px;
+}
+
+
+/* =========================================
+   15. JOURNAL
+========================================= */
+
+.journal-card {
+  padding: 20px;
+}
+
+.journal-entry {
+  min-width: 0;
+
+  background: rgba(113, 91, 160, 0.15);
+
+  border: 1px solid var(--border-color);
+
+  overflow-wrap: break-word;
+}
+
+
+/* =========================================
+   16. GOAL CIRCLES
+========================================= */
+
+.goal-circles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.goal-item {
+  min-width: 0;
+
+  background: rgba(113, 91, 160, 0.15);
+
+  border: 1px solid var(--border-color);
+
+  overflow-wrap: break-word;
+}
+
+
+/* =========================================
+   17. SAVED DISCOVERIES
+========================================= */
+
+.saved-discovery-card {
+  background: rgba(113, 91, 160, 0.15);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+}
+
+
+/* =========================================
+   18. COMMUNITY
+========================================= */
+
+.community-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.community-card form {
+  min-width: 0;
+}
+
+.conversation-card {
+  background: rgba(113, 91, 160, 0.15);
+  border: 1px solid var(--border-color);
+  overflow-wrap: break-word;
+}
+
+.conversation-reply {
+  border-left: 2px solid var(--purple-light);
+}
+
+
+/* =========================================
+   19. PROGRESS
+========================================= */
+
+.progress-track {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.progress-fill {
+  background: var(--accent-gradient);
+}
+
+
+/* =========================================
+   20. FEEDBACK
+========================================= */
+
+.answer-feedback {
+  color: var(--text-secondary);
+}
+
+
+/* =========================================
+   21. MODAL
+========================================= */
+
+.modal-content {
+  background: linear-gradient(
+    145deg,
+    #403364,
+    #292044
+  );
+
+  border: 1px solid var(--border-color);
+
+  box-shadow: var(--shadow-card);
+}
+
+
+/* =========================================
+   22. PRINCIPLES
+========================================= */
+
+.principles {
+  gap: 18px;
+}
+
+
+/* =========================================
+   23. FOOTER
+========================================= */
+
+footer {
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-color);
+}
+
+
+/* =========================================
+   24. TABLETS AND SMALLER SCREENS
+========================================= */
 
 @media (max-width: 760px) {
+
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
 
   .topbar {
     height: 64px;
@@ -46,8 +596,6 @@ select {
   }
 
   .top-actions {
-    display: flex;
-    align-items: center;
     gap: 7px;
   }
 
@@ -58,14 +606,10 @@ select {
 
   .shell {
     width: 100%;
-    max-width: 100%;
     padding: 35px 18px 25px;
   }
 
-  /* INTRO */
-
   .intro {
-    width: 100%;
     max-width: 100%;
     margin-bottom: 38px;
   }
@@ -82,10 +626,7 @@ select {
     line-height: 1.6;
   }
 
-  /* SECTION HEADINGS */
-
   .section-heading {
-    display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
@@ -95,31 +636,25 @@ select {
     font-size: 21px;
   }
 
-  /* MOOD SELECTION */
-
   .mood-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 9px;
+    gap: 13px;
   }
 
   .mood {
-    min-width: 0;
     min-height: 88px;
     padding: 13px 10px;
   }
 
-  /* MAIN FEATURE LAYOUT */
-
   .feature-grid {
     grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+    gap: 17px;
     margin: 20px 0 45px;
   }
 
   .side-stack {
-    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 13px;
   }
 
   .activity-card,
@@ -128,61 +663,32 @@ select {
   .community-card {
     min-width: 0;
     padding: 19px;
-    overflow-wrap: break-word;
   }
 
   .activity-card h2 {
     font-size: 24px;
   }
 
-  /* ANSWERS */
-
-  .answer-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 9px;
-  }
-
-  .answer {
-    min-width: 0;
-    overflow-wrap: break-word;
-  }
-
-  /* COMMUNITY */
-
   .community-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 14px;
   }
-
-  .community-card form {
-    min-width: 0;
-  }
-
-  /* PRINCIPLES */
 
   .principles {
     grid-template-columns: 1fr;
     gap: 18px;
   }
 
-  /* MY SPACE */
-
   .my-space-grid,
   .goal-circles-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
+    gap: 12px;
   }
 
-  .profile-card,
-  .my-space-card,
-  .journal-card,
-  .goal-card,
-  .saved-activities-card {
-    min-width: 0;
-    overflow-wrap: break-word;
+  .profile-card {
+    padding: 15px;
+    gap: 8px;
   }
-
-  /* FOOTER */
 
   footer {
     padding: 20px 18px;
@@ -190,9 +696,10 @@ select {
   }
 }
 
-/* =================================
-   MOBILE PHONES
-================================= */
+
+/* =========================================
+   25. MOBILE PHONES
+========================================= */
 
 @media (max-width: 480px) {
 
@@ -218,8 +725,6 @@ select {
     padding: 30px 15px 22px;
   }
 
-  /* INTRO */
-
   .intro {
     margin-bottom: 34px;
   }
@@ -237,11 +742,8 @@ select {
 
   .intro-copy {
     font-size: 14px;
-    line-height: 1.6;
     margin-top: 15px;
   }
-
-  /* HEADINGS */
 
   .section-heading {
     align-items: flex-start;
@@ -257,11 +759,9 @@ select {
     white-space: nowrap;
   }
 
-  /* MOOD GRID */
-
   .mood-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 9px;
+    gap: 12px;
   }
 
   .mood {
@@ -275,11 +775,9 @@ select {
     margin-bottom: 5px;
   }
 
-  /* FEATURE CARDS */
-
   .feature-grid {
     margin-top: 18px;
-    gap: 13px;
+    gap: 15px;
   }
 
   .side-stack {
@@ -305,8 +803,6 @@ select {
     font-size: 23px;
   }
 
-  /* QUESTION AND ANSWERS */
-
   .question-area {
     padding: 14px;
   }
@@ -317,12 +813,9 @@ select {
   }
 
   .answer {
-    min-width: 0;
     padding: 10px;
     font-size: 12px;
   }
-
-  /* CARD FOOTERS */
 
   .card-footer {
     flex-direction: column;
@@ -335,10 +828,7 @@ select {
     padding: 12px;
   }
 
-  /* COMMUNITY FORM */
-
   .community-card form {
-    display: flex;
     flex-direction: column;
     gap: 10px;
   }
@@ -347,13 +837,27 @@ select {
     width: 100%;
   }
 
-  .community-card input,
-  .community-card textarea {
+  .community-card input {
     width: 100%;
     min-height: 44px;
   }
 
-  /* MY SPACE */
+  /* COMPACT PROFILE */
+
+  .profile-card {
+    padding: 13px 14px;
+    gap: 8px;
+  }
+
+  .profile-card form {
+    gap: 8px;
+  }
+
+  .profile-card input,
+  .profile-card textarea {
+    padding: 9px 11px;
+    min-height: 38px;
+  }
 
   .my-space-grid,
   .goal-circles-grid {
@@ -361,28 +865,13 @@ select {
     gap: 12px;
   }
 
-  .profile-card,
-  .my-space-card,
-  .journal-card,
-  .goal-card,
-  .saved-activities-card {
-    padding: 17px;
+  .journal-card {
+    padding: 16px;
   }
-
-  .journal-entry,
-  .goal-item,
-  .conversation-card {
-    min-width: 0;
-    overflow-wrap: break-word;
-  }
-
-  /* PRINCIPLES */
 
   .principles {
     padding: 23px 0;
   }
-
-  /* FOOTER */
 
   footer {
     flex-direction: column;
@@ -401,9 +890,10 @@ select {
   }
 }
 
-/* =================================
-   VERY SMALL PHONES
-================================= */
+
+/* =========================================
+   26. VERY SMALL PHONES
+========================================= */
 
 @media (max-width: 360px) {
 
@@ -447,11 +937,16 @@ select {
   .community-card {
     padding: 15px;
   }
+
+  .profile-card {
+    padding: 12px;
+  }
 }
 
-/* =================================
-   FINAL LAYOUT PROTECTION
-================================= */
+
+/* =========================================
+   27. FINAL LAYOUT PROTECTION
+========================================= */
 
 .activity-card,
 .community-card,
@@ -463,11 +958,4 @@ select {
 .goal-card,
 .saved-activities-card {
   overflow-wrap: break-word;
-}
-
-button,
-input,
-textarea,
-select {
-  min-width: 0;
 }
