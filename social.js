@@ -167,21 +167,34 @@
     const formFooter = createElement("div", "social-compose-footer");
 
     const characterCount = createElement(
-      "span",
-      "social-character-count",
-      `0 / ${MAX_POST_LENGTH}`
-    );
-    characterCount.id = "socialCharacterCount";
+  "span",
+  "social-character-count",
+  `0 / ${MAX_POST_LENGTH}`
+);
 
-    const submitButton = createElement(
-      "button",
-      "primary-button",
-      "Share thought"
-    );
-    submitButton.type = "submit";
+characterCount.id = "socialCharacterCount";
 
-    formFooter.append(characterCount, submitButton);
-    form.append(textarea, formFooter);
+// Add visible space after the character counter
+characterCount.style.marginRight = "30px";
+characterCount.style.flexShrink = "0";
+
+const submitButton = createElement(
+  "button",
+  "primary-button",
+  "Save thought"
+);
+
+submitButton.type = "submit";
+submitButton.style.marginLeft = "0";
+submitButton.style.flexShrink = "0";
+
+formFooter.style.display = "flex";
+formFooter.style.alignItems = "center";
+formFooter.style.justifyContent = "flex-start";
+formFooter.style.gap = "0";
+
+formFooter.append(characterCount, submitButton);
+form.append(textarea, formFooter);
 
     const signInNotice = createElement(
       "p",
