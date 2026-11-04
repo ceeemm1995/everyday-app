@@ -1,12 +1,19 @@
 
-/* =================================
-   EVERYDAY — ORIGINAL DARK PURPLE
-   BLACK → INDIGO → PURPLE
-================================= */
+/* ==================================================
+   EVERYDAY — COMPLETE STYLESHEET
+   ORIGINAL DARK PURPLE
+   BLACK → DEEP INDIGO → PURPLE
+================================================== */
+
+
+/* ==================================================
+   01. COLOR VARIABLES
+================================================== */
 
 :root {
   --bg-main: #080611;
   --bg-secondary: #100b20;
+
   --bg-card: rgba(23, 15, 43, 0.82);
   --bg-card-hover: rgba(37, 23, 66, 0.92);
 
@@ -38,18 +45,29 @@
   );
 }
 
-/* =================================
-   DESKTOP — BASE STYLING
-================================= */
 
-/* Main background */
-html,
-body {
-  background: #080611;
-  color: var(--text-primary);
+/* ==================================================
+   02. GLOBAL RESET
+================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  min-height: 100%;
+  background: var(--bg-main);
+  scroll-behavior: smooth;
 }
 
 body {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+
+  color: var(--text-primary);
+
   background:
     radial-gradient(
       ellipse at 85% 10%,
@@ -68,21 +86,153 @@ body {
       #17102f 75%,
       #251044 100%
     );
+
   background-attachment: fixed;
+
+  font-family: inherit;
+  overflow-x: hidden;
 }
 
-/* Header */
+img,
+video,
+iframe {
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  max-width: 100%;
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: rgba(132, 82, 210, 0.5);
+  color: #ffffff;
+}
+
+
+/* ==================================================
+   03. TYPOGRAPHY
+================================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-primary);
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+.eyebrow {
+  color: var(--purple-light);
+}
+
+.intro-copy {
+  color: var(--text-secondary);
+}
+
+.text-button {
+  color: var(--purple-light);
+}
+
+
+/* ==================================================
+   04. HEADER / NAVIGATION
+================================================== */
+
 .topbar {
   background: rgba(8, 6, 17, 0.82);
   border-bottom: 1px solid var(--border-color);
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .brand {
   color: #f7f2ff;
 }
 
-/* Cards */
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.local-pill {
+  color: var(--purple-light);
+  background: rgba(113, 55, 200, 0.12);
+  border: 1px solid var(--border-color);
+}
+
+
+/* ==================================================
+   05. MAIN LAYOUT
+================================================== */
+
+.shell {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.intro {
+  max-width: 850px;
+}
+
+.intro h1 {
+  color: var(--text-primary);
+}
+
+.section-heading h2 {
+  color: var(--text-primary);
+}
+
+
+/* ==================================================
+   06. MOOD SELECTION
+================================================== */
+
+.mood {
+  background: rgba(27, 19, 49, 0.78);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.mood:hover,
+.mood.active,
+.mood.selected {
+  background: linear-gradient(
+    135deg,
+    rgba(76, 45, 130, 0.85),
+    rgba(119, 69, 190, 0.75)
+  );
+
+  border-color: var(--purple-light);
+}
+
+.mood:hover {
+  transform: translateY(-2px);
+}
+
+
+/* ==================================================
+   07. MAIN CARDS
+================================================== */
+
 .activity-card,
 .streak-card,
 .prompt-card,
@@ -97,7 +247,17 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
+
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  min-width: 0;
+  overflow-wrap: break-word;
+
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .activity-card:hover,
@@ -115,48 +275,57 @@ body {
   border-color: var(--border-hover);
 }
 
-/* Headings and text */
-h1,
-h2,
-h3,
-h4 {
+
+/* ==================================================
+   08. ACTIVITY CARD
+================================================== */
+
+.activity-card h2 {
   color: var(--text-primary);
 }
 
-p,
-.intro-copy {
-  color: var(--text-secondary);
-}
-
-.eyebrow,
-.text-button {
+.activity-symbol {
   color: var(--purple-light);
 }
 
-/* Mood cards */
-.mood {
-  background: rgba(27, 19, 49, 0.78);
+.question-area {
+  background: rgba(12, 9, 29, 0.72);
   border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  border-radius: 14px;
 }
 
-.mood:hover,
-.mood.active,
-.mood.selected {
-  background: linear-gradient(
-    135deg,
-    rgba(76, 45, 130, 0.85),
-    rgba(119, 69, 190, 0.75)
-  );
+.answer-list {
+  display: grid;
+}
+
+.answer {
+  background: rgba(37, 23, 66, 0.65);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  transition: 0.2s ease;
+}
+
+.answer:hover {
+  background: rgba(76, 45, 130, 0.65);
   border-color: var(--purple-light);
 }
 
-/* Buttons */
+.answer:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+
+/* ==================================================
+   09. BUTTONS
+================================================== */
+
 .primary-button,
 button.primary-button {
   background: var(--accent-gradient);
   color: #ffffff;
   border: 1px solid rgba(190, 150, 255, 0.28);
+  transition: 0.25s ease;
 }
 
 .primary-button:hover,
@@ -165,7 +334,17 @@ button.primary-button:hover {
   box-shadow: 0 0 22px rgba(133, 80, 217, 0.28);
 }
 
-/* Inputs and text areas */
+.primary-button:disabled,
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* ==================================================
+   10. INPUTS AND TEXT AREAS
+================================================== */
+
 input,
 textarea,
 select {
@@ -187,92 +366,63 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(135, 85, 210, 0.15);
 }
 
-/* Journal privacy and sharing */
-.privacy-toggle,
-.journal-entry,
-.goal-item {
-  background: rgba(20, 13, 38, 0.85);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-}
 
-/* Goal progress */
-.goal-progress {
-  background: rgba(255, 255, 255, 0.09);
-}
+/* ==================================================
+   11. COMMUNITY
+================================================== */
 
-.goal-progress-bar {
-  background: var(--accent-gradient);
-}
-
-/* Threaded conversations */
-.conversation-reply {
-  border-left: 2px solid rgba(153, 105, 225, 0.55);
-}
-
-/* Footer */
-footer {
-  background: rgba(5, 4, 11, 0.55);
-  border-top: 1px solid var(--border-color);
-  color: var(--text-secondary);
-}
-
-/* Modal */
-dialog,
-.modal-content {
-  background: #120d24;
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-}
-
-dialog::backdrop {
-  background: rgba(3, 2, 9, 0.78);
-  backdrop-filter: blur(6px);
-}
-
-/* Selection */
-::selection {
-  background: rgba(132, 82, 210, 0.5);
-  color: #ffffff;
-}
-
-/* =================================
-   V0.2 — NEW SECTION BASE STYLING
-================================= */
-
-.my-space,
-.my-space-grid,
-.goal-circles-grid {
+.community-grid {
   min-width: 0;
+}
+
+.community-card form {
+  display: flex;
+  gap: 10px;
+}
+
+.community-card input {
+  min-width: 0;
+}
+
+.community-card form button {
+  flex-shrink: 0;
+}
+
+
+/* ==================================================
+   12. MY SPACE
+================================================== */
+
+.my-space {
   width: 100%;
+  min-width: 0;
 }
 
 .my-space-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+  width: 100%;
 }
 
-.goal-circles-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+.profile-card,
+.my-space-card {
+  min-width: 0;
 }
 
 .profile-header {
   display: flex;
   align-items: center;
   gap: 16px;
-  min-width: 0;
+}
+
+.profile-avatar {
+  flex-shrink: 0;
 }
 
 .profile-details {
   min-width: 0;
   overflow-wrap: anywhere;
-}
-
-.profile-avatar {
-  flex-shrink: 0;
 }
 
 .profile-stats {
@@ -281,35 +431,109 @@ dialog::backdrop {
   gap: 16px;
 }
 
-.journal-list,
-.goal-list {
+
+/* ==================================================
+   13. JOURNAL
+================================================== */
+
+.journal-card {
+  min-width: 0;
+}
+
+.journal-list {
   display: grid;
   gap: 12px;
 }
 
-.journal-entry,
-.goal-item {
+.journal-entry {
+  background: rgba(20, 13, 38, 0.85);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+
+  padding: 15px;
+  border-radius: 14px;
+
   min-width: 0;
   overflow-wrap: anywhere;
-  border-radius: 14px;
-  padding: 15px;
 }
 
-.journal-actions,
-.goal-actions,
-.conversation-actions {
+.journal-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
 }
 
-.goal-circle-card,
-.conversation-card {
+.privacy-toggle {
+  background: rgba(20, 13, 38, 0.85);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+
+/* ==================================================
+   14. GOALS
+================================================== */
+
+.goal-card {
+  min-width: 0;
+}
+
+.goal-list {
+  display: grid;
+  gap: 12px;
+}
+
+.goal-item {
+  background: rgba(20, 13, 38, 0.85);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+
+  padding: 15px;
+  border-radius: 14px;
+
   min-width: 0;
   overflow-wrap: anywhere;
-  border-radius: 18px;
+}
+
+.goal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.goal-progress {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.goal-progress-bar {
+  height: 100%;
+  background: var(--accent-gradient);
+  border-radius: inherit;
+}
+
+
+/* ==================================================
+   15. GOAL CIRCLES
+================================================== */
+
+.goal-circles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.goal-circle-card {
+  min-width: 0;
   padding: 20px;
+  border-radius: 18px;
+  overflow-wrap: anywhere;
 }
 
 .goal-circle-members {
@@ -318,22 +542,39 @@ dialog::backdrop {
   gap: 8px;
 }
 
-.goal-progress {
-  width: 100%;
-  height: 8px;
-  border-radius: 20px;
-  overflow: hidden;
+
+/* ==================================================
+   16. SAVED ACTIVITIES
+================================================== */
+
+.saved-activities-card {
+  min-width: 0;
 }
 
-.goal-progress-bar {
-  height: 100%;
-  border-radius: inherit;
+
+/* ==================================================
+   17. THREADED CONVERSATIONS
+================================================== */
+
+.conversation-card {
+  min-width: 0;
+  padding: 20px;
+  border-radius: 18px;
+  overflow-wrap: anywhere;
 }
 
 .conversation-reply {
+  border-left: 2px solid rgba(153, 105, 225, 0.55);
   margin: 14px 0 0 12px;
   padding: 10px 0 10px 14px;
   min-width: 0;
+}
+
+.conversation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
 .conversation-form {
@@ -347,11 +588,52 @@ dialog::backdrop {
   min-width: 0;
 }
 
-/* =================================
-   TABLETS AND SMALLER SCREENS
-================================= */
+
+/* ==================================================
+   18. PRINCIPLES
+================================================== */
+
+.principles {
+  min-width: 0;
+}
+
+
+/* ==================================================
+   19. FOOTER
+================================================== */
+
+footer {
+  background: rgba(5, 4, 11, 0.55);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+
+/* ==================================================
+   20. AUTHENTICATION MODAL
+================================================== */
+
+dialog,
+.modal-content {
+  background: #120d24;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+dialog::backdrop {
+  background: rgba(3, 2, 9, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+
+/* ==================================================
+   21. TABLETS AND SMALLER SCREENS
+   MAX WIDTH: 760PX
+================================================== */
 
 @media (max-width: 760px) {
+
   html,
   body {
     width: 100%;
@@ -456,13 +738,19 @@ dialog::backdrop {
     gap: 10px;
   }
 
-  /* V0.2 tablet adjustments */
-  .my-space-grid,
+  /* My Space */
+  .my-space-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  /* Goal Circles */
   .goal-circles-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 14px;
   }
 
+  /* New section cards */
   .profile-card,
   .my-space-card,
   .journal-card,
@@ -480,11 +768,14 @@ dialog::backdrop {
   }
 }
 
-/* =================================
-   MOBILE PHONES
-================================= */
+
+/* ==================================================
+   22. MOBILE PHONES
+   MAX WIDTH: 480PX
+================================================== */
 
 @media (max-width: 480px) {
+
   .topbar {
     padding: 0 14px;
     height: 60px;
@@ -643,7 +934,7 @@ dialog::backdrop {
     margin: 4px 0 0;
   }
 
-  /* V0.2 mobile adjustments */
+  /* My Space */
   .profile-header {
     align-items: flex-start;
     gap: 12px;
@@ -664,12 +955,14 @@ dialog::backdrop {
     border-radius: 17px;
   }
 
+  /* Journal and Goals */
   .journal-actions,
   .goal-actions,
   .conversation-actions {
     gap: 8px;
   }
 
+  /* Threaded Conversations */
   .conversation-reply {
     margin-left: 5px;
     padding-left: 10px;
@@ -685,11 +978,14 @@ dialog::backdrop {
   }
 }
 
-/* =================================
-   VERY SMALL PHONES
-================================= */
+
+/* ==================================================
+   23. VERY SMALL PHONES
+   MAX WIDTH: 360PX
+================================================== */
 
 @media (max-width: 360px) {
+
   .topbar {
     padding: 0 10px;
   }
@@ -724,7 +1020,7 @@ dialog::backdrop {
     grid-template-columns: 1fr;
   }
 
-  /* V0.2 small-screen adjustments */
+  /* My Space */
   .profile-header {
     flex-direction: column;
   }
@@ -733,6 +1029,7 @@ dialog::backdrop {
     gap: 9px;
   }
 
+  /* New section cards */
   .profile-card,
   .my-space-card,
   .journal-card,
@@ -744,9 +1041,10 @@ dialog::backdrop {
   }
 }
 
-/* =================================
-   PREVENT CONTENT OVERFLOW
-================================= */
+
+/* ==================================================
+   24. FINAL OVERFLOW PROTECTION
+================================================== */
 
 img,
 video,
@@ -772,10 +1070,11 @@ select {
 .saved-activities-card,
 .goal-circle-card,
 .conversation-card {
-  overflow-wrap: break-word;
   min-width: 0;
+  overflow-wrap: break-word;
 }
 
-* {
-  box-sizing: border-box;
-}
+
+/* ==================================================
+   END OF EVERYDAY STYLESHEET
+================================================== */
