@@ -38,6 +38,10 @@
   );
 }
 
+/* =================================
+   DESKTOP — BASE STYLING
+================================= */
+
 /* Main background */
 html,
 body {
@@ -64,7 +68,6 @@ body {
       #17102f 75%,
       #251044 100%
     );
-
   background-attachment: fixed;
 }
 
@@ -231,4 +234,548 @@ dialog::backdrop {
 ::selection {
   background: rgba(132, 82, 210, 0.5);
   color: #ffffff;
+}
+
+/* =================================
+   V0.2 — NEW SECTION BASE STYLING
+================================= */
+
+.my-space,
+.my-space-grid,
+.goal-circles-grid {
+  min-width: 0;
+  width: 100%;
+}
+
+.my-space-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.goal-circles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.profile-details {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.profile-avatar {
+  flex-shrink: 0;
+}
+
+.profile-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.journal-list,
+.goal-list {
+  display: grid;
+  gap: 12px;
+}
+
+.journal-entry,
+.goal-item {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  border-radius: 14px;
+  padding: 15px;
+}
+
+.journal-actions,
+.goal-actions,
+.conversation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.goal-circle-card,
+.conversation-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.goal-circle-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.goal-progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.goal-progress-bar {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.conversation-reply {
+  margin: 14px 0 0 12px;
+  padding: 10px 0 10px 14px;
+  min-width: 0;
+}
+
+.conversation-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.conversation-form textarea {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+/* =================================
+   TABLETS AND SMALLER SCREENS
+================================= */
+
+@media (max-width: 760px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .topbar {
+    height: 64px;
+    padding: 0 18px;
+  }
+
+  .brand {
+    font-size: 20px;
+  }
+
+  .top-actions {
+    gap: 7px;
+  }
+
+  .local-pill {
+    padding: 6px 9px;
+    font-size: 10px;
+  }
+
+  .shell {
+    width: 100%;
+    padding: 35px 18px 25px;
+  }
+
+  .intro {
+    max-width: 100%;
+    margin-bottom: 38px;
+  }
+
+  .intro h1 {
+    font-size: clamp(38px, 8vw, 58px);
+    letter-spacing: -2.5px;
+    line-height: 1.05;
+    overflow-wrap: break-word;
+  }
+
+  .intro-copy {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .section-heading {
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .section-heading h2 {
+    font-size: 21px;
+  }
+
+  .mood-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .mood {
+    min-height: 88px;
+    padding: 13px 10px;
+  }
+
+  .feature-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    margin: 20px 0 45px;
+  }
+
+  .side-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .activity-card,
+  .streak-card,
+  .prompt-card,
+  .community-card {
+    min-width: 0;
+    padding: 19px;
+  }
+
+  .activity-card h2 {
+    font-size: 24px;
+  }
+
+  .community-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .principles {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  footer {
+    padding: 20px 18px;
+    gap: 10px;
+  }
+
+  /* V0.2 tablet adjustments */
+  .my-space-grid,
+  .goal-circles-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .profile-card,
+  .my-space-card,
+  .journal-card,
+  .goal-card,
+  .saved-activities-card,
+  .goal-circle-card,
+  .conversation-card {
+    min-width: 0;
+    padding: 19px;
+  }
+
+  .conversation-reply {
+    margin-left: 8px;
+    padding-left: 12px;
+  }
+}
+
+/* =================================
+   MOBILE PHONES
+================================= */
+
+@media (max-width: 480px) {
+  .topbar {
+    padding: 0 14px;
+    height: 60px;
+  }
+
+  .brand {
+    font-size: 19px;
+  }
+
+  .top-actions {
+    gap: 6px;
+  }
+
+  .local-pill {
+    font-size: 9px;
+    padding: 6px 8px;
+  }
+
+  .shell {
+    padding: 30px 15px 22px;
+  }
+
+  .intro {
+    margin-bottom: 34px;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 1.3px;
+  }
+
+  .intro h1 {
+    font-size: clamp(36px, 10vw, 48px);
+    letter-spacing: -2px;
+    line-height: 1.04;
+  }
+
+  .intro-copy {
+    font-size: 14px;
+    margin-top: 15px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+  }
+
+  .section-heading h2 {
+    font-size: 20px;
+    line-height: 1.25;
+  }
+
+  .text-button {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .mood-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .mood {
+    min-height: 82px;
+    padding: 12px;
+    font-size: 12px;
+  }
+
+  .mood span {
+    font-size: 20px;
+    margin-bottom: 5px;
+  }
+
+  .feature-grid {
+    margin-top: 18px;
+    gap: 13px;
+  }
+
+  .side-stack {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-card,
+  .streak-card,
+  .prompt-card,
+  .community-card {
+    padding: 17px;
+    border-radius: 17px;
+  }
+
+  .activity-symbol {
+    width: 54px;
+    height: 54px;
+    font-size: 26px;
+    margin: 22px 0 14px;
+  }
+
+  .activity-card h2 {
+    font-size: 23px;
+  }
+
+  .question-area {
+    padding: 14px;
+  }
+
+  .answer-list {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+
+  .answer {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .primary-button {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .community-card form {
+    flex-direction: column;
+  }
+
+  .community-card form button {
+    width: 100%;
+  }
+
+  .community-card input {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .principles {
+    padding: 23px 0;
+  }
+
+  footer {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 15px;
+  }
+
+  footer p {
+    text-align: left;
+    max-width: 100%;
+  }
+
+  footer p span {
+    display: block;
+    margin: 4px 0 0;
+  }
+
+  /* V0.2 mobile adjustments */
+  .profile-header {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .profile-stats {
+    gap: 12px;
+  }
+
+  .profile-card,
+  .my-space-card,
+  .journal-card,
+  .goal-card,
+  .saved-activities-card,
+  .goal-circle-card,
+  .conversation-card {
+    padding: 17px;
+    border-radius: 17px;
+  }
+
+  .journal-actions,
+  .goal-actions,
+  .conversation-actions {
+    gap: 8px;
+  }
+
+  .conversation-reply {
+    margin-left: 5px;
+    padding-left: 10px;
+  }
+
+  .conversation-form {
+    flex-direction: column;
+  }
+
+  .conversation-form textarea,
+  .conversation-form button {
+    width: 100%;
+  }
+}
+
+/* =================================
+   VERY SMALL PHONES
+================================= */
+
+@media (max-width: 360px) {
+  .topbar {
+    padding: 0 10px;
+  }
+
+  .brand {
+    font-size: 17px;
+  }
+
+  .top-actions {
+    gap: 4px;
+  }
+
+  .local-pill {
+    padding: 5px 6px;
+    font-size: 8px;
+  }
+
+  .shell {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .intro h1 {
+    font-size: 35px;
+  }
+
+  .mood {
+    padding: 10px;
+  }
+
+  .answer-list {
+    grid-template-columns: 1fr;
+  }
+
+  /* V0.2 small-screen adjustments */
+  .profile-header {
+    flex-direction: column;
+  }
+
+  .profile-stats {
+    gap: 9px;
+  }
+
+  .profile-card,
+  .my-space-card,
+  .journal-card,
+  .goal-card,
+  .saved-activities-card,
+  .goal-circle-card,
+  .conversation-card {
+    padding: 15px;
+  }
+}
+
+/* =================================
+   PREVENT CONTENT OVERFLOW
+================================= */
+
+img,
+video,
+iframe {
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  max-width: 100%;
+}
+
+.activity-card,
+.community-card,
+.streak-card,
+.prompt-card,
+.profile-card,
+.my-space-card,
+.journal-card,
+.goal-card,
+.saved-activities-card,
+.goal-circle-card,
+.conversation-card {
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+* {
+  box-sizing: border-box;
 }
