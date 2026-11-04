@@ -1,25 +1,26 @@
-
-/* ==================================================
-   EVERYDAY — COMPLETE STYLESHEET
-   ORIGINAL DARK PURPLE
+/* =========================================
+   EVERYDAY — ORIGINAL DESIGN RESTORATION
    BLACK → DEEP INDIGO → PURPLE
-================================================== */
+   Modern dark glass interface
+========================================= */
 
-
-/* ==================================================
-   01. COLOR VARIABLES
-================================================== */
+/* =========================================
+   01. DESIGN SYSTEM
+========================================= */
 
 :root {
   --bg-main: #080611;
   --bg-secondary: #100b20;
+  --bg-tertiary: #17102f;
 
-  --bg-card: rgba(23, 15, 43, 0.82);
+  --bg-card: rgba(23, 15, 43, 0.78);
   --bg-card-hover: rgba(37, 23, 66, 0.92);
 
   --purple-dark: #241044;
   --purple: #7137c8;
   --purple-light: #a879f5;
+  --purple-bright: #bd98ff;
+
   --indigo: #31205f;
 
   --text-primary: #f7f2ff;
@@ -27,83 +28,103 @@
   --text-muted: #81748f;
 
   --border-color: rgba(173, 130, 235, 0.18);
-  --border-hover: rgba(173, 130, 235, 0.4);
+  --border-hover: rgba(173, 130, 235, 0.42);
 
-  --accent-gradient: linear-gradient(
-    135deg,
-    #241044 0%,
-    #493080 48%,
-    #8650d9 100%
-  );
+  --page-gradient:
+    linear-gradient(
+      135deg,
+      #05040b 0%,
+      #0c0920 38%,
+      #17102f 72%,
+      #251044 100%
+    );
 
-  --page-gradient: linear-gradient(
-    135deg,
-    #05040b 0%,
-    #0c0920 38%,
-    #17102f 72%,
-    #251044 100%
-  );
+  --accent-gradient:
+    linear-gradient(
+      135deg,
+      #241044 0%,
+      #493080 48%,
+      #8650d9 100%
+    );
+
+  --card-gradient:
+    linear-gradient(
+      145deg,
+      rgba(35, 24, 61, 0.88),
+      rgba(16, 11, 32, 0.92)
+    );
+
+  --purple-glow:
+    0 0 35px rgba(119, 69, 190, 0.15);
+
+  --shadow-card:
+    0 18px 50px rgba(0, 0, 0, 0.25);
+
+  --radius-small: 12px;
+  --radius-medium: 20px;
+  --radius-large: 28px;
+  --radius-pill: 999px;
+
+  --transition: 220ms ease;
 }
 
-
-/* ==================================================
-   02. GLOBAL RESET
-================================================== */
+/* =========================================
+   02. RESET
+========================================= */
 
 * {
   box-sizing: border-box;
 }
 
 html {
-  width: 100%;
   min-height: 100%;
-  background: var(--bg-main);
   scroll-behavior: smooth;
+  background: var(--bg-main);
+  color-scheme: dark;
 }
 
 body {
-  width: 100%;
   min-height: 100vh;
   margin: 0;
+
+  font-family:
+    Inter,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
 
   color: var(--text-primary);
 
   background:
     radial-gradient(
-      ellipse at 85% 10%,
-      rgba(105, 55, 175, 0.20),
+      ellipse at 85% 8%,
+      rgba(111, 62, 185, 0.20),
+      transparent 38%
+    ),
+    radial-gradient(
+      ellipse at 10% 42%,
+      rgba(48, 37, 105, 0.20),
       transparent 42%
     ),
     radial-gradient(
-      ellipse at 10% 45%,
-      rgba(48, 37, 105, 0.19),
+      ellipse at 55% 100%,
+      rgba(82, 39, 145, 0.17),
       transparent 45%
     ),
-    linear-gradient(
-      135deg,
-      #05040b 0%,
-      #0c0920 42%,
-      #17102f 75%,
-      #251044 100%
-    );
+    var(--page-gradient);
 
   background-attachment: fixed;
 
-  font-family: inherit;
+  line-height: 1.65;
   overflow-x: hidden;
 }
 
-img,
-video,
-iframe {
-  max-width: 100%;
-}
-
-input,
 button,
+input,
 textarea,
 select {
-  max-width: 100%;
   font: inherit;
 }
 
@@ -111,127 +132,271 @@ button {
   cursor: pointer;
 }
 
-::selection {
-  background: rgba(132, 82, 210, 0.5);
-  color: #ffffff;
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
 
-/* ==================================================
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: rgba(132, 82, 210, 0.5);
+  color: white;
+}
+
+/* =========================================
    03. TYPOGRAPHY
-================================================== */
+========================================= */
 
 h1,
 h2,
 h3,
-h4,
-h5,
-h6 {
+h4 {
+  margin-top: 0;
   color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 6vw, 4.6rem);
+  font-weight: 750;
+}
+
+h2 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1.3rem;
+  font-weight: 650;
+}
+
+h4 {
+  font-size: 1.05rem;
+  font-weight: 650;
 }
 
 p {
   color: var(--text-secondary);
 }
 
+small {
+  color: var(--text-muted);
+}
+
 .eyebrow {
   color: var(--purple-light);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.muted {
+  color: var(--text-muted);
 }
 
 .intro-copy {
   color: var(--text-secondary);
+  font-size: 1.08rem;
+  max-width: 650px;
+  line-height: 1.8;
 }
 
-.text-button {
-  color: var(--purple-light);
-}
-
-
-/* ==================================================
-   04. HEADER / NAVIGATION
-================================================== */
+/* =========================================
+   04. HEADER
+========================================= */
 
 .topbar {
-  background: rgba(8, 6, 17, 0.82);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  min-height: 76px;
+
+  padding: 14px clamp(20px, 6vw, 90px);
+
+  background: rgba(8, 6, 17, 0.76);
   border-bottom: 1px solid var(--border-color);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
 }
 
 .brand {
-  color: #f7f2ff;
+  color: var(--text-primary);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
 }
 
-.top-actions {
+.brand span {
+  color: var(--purple-light);
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.main-nav a {
+  position: relative;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 550;
+  transition: color var(--transition);
+}
+
+.main-nav a:hover {
+  color: white;
+}
+
+.main-nav a::after {
+  position: absolute;
+  content: "";
+  left: 0;
+  bottom: -8px;
+  width: 0;
+  height: 2px;
+  background: var(--purple-light);
+  transition: width var(--transition);
+}
+
+.main-nav a:hover::after {
+  width: 100%;
+}
+
+#guest-view,
+#user-view {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.local-pill {
-  color: var(--purple-light);
-  background: rgba(113, 55, 200, 0.12);
-  border: 1px solid var(--border-color);
-}
-
-
-/* ==================================================
+/* =========================================
    05. MAIN LAYOUT
-================================================== */
+========================================= */
 
-.shell {
-  width: 100%;
-  max-width: 1400px;
+main {
+  width: min(1160px, calc(100% - 48px));
   margin: 0 auto;
+  padding: 64px 0 90px;
 }
 
-.intro {
+section {
+  margin-bottom: 90px;
+  scroll-margin-top: 105px;
+}
+
+.section-heading {
+  margin-bottom: 28px;
+}
+
+.section-heading p {
+  max-width: 650px;
+}
+
+/* =========================================
+   06. HERO / INTRO
+========================================= */
+
+.hero,
+.intro-section {
+  position: relative;
+  padding: 60px 0 45px;
+}
+
+.hero h1,
+.intro-section h1 {
   max-width: 850px;
+  margin-bottom: 22px;
 }
 
-.intro h1 {
-  color: var(--text-primary);
+.hero h1 span,
+.intro-section h1 span {
+  color: var(--purple-light);
 }
 
-.section-heading h2 {
-  color: var(--text-primary);
+.hero p,
+.intro-section p {
+  max-width: 660px;
+  font-size: 1.08rem;
 }
 
+/* =========================================
+   07. MOOD DISCOVERY
+========================================= */
 
-/* ==================================================
-   06. MOOD SELECTION
-================================================== */
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
 
 .mood {
-  background: rgba(27, 19, 49, 0.78);
+  min-height: 110px;
+  padding: 23px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
   border: 1px solid var(--border-color);
+  border-radius: var(--radius-medium);
+
   color: var(--text-primary);
+  background: rgba(27, 19, 49, 0.68);
+
   transition:
-    background 0.25s ease,
-    border-color 0.25s ease,
-    transform 0.25s ease;
-}
-
-.mood:hover,
-.mood.active,
-.mood.selected {
-  background: linear-gradient(
-    135deg,
-    rgba(76, 45, 130, 0.85),
-    rgba(119, 69, 190, 0.75)
-  );
-
-  border-color: var(--purple-light);
+    transform var(--transition),
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 
 .mood:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  border-color: var(--border-hover);
+  background: rgba(54, 34, 88, 0.82);
+  box-shadow: var(--purple-glow);
 }
 
+.mood.active,
+.mood.selected {
+  border-color: rgba(184, 145, 255, 0.75);
 
-/* ==================================================
-   07. MAIN CARDS
-================================================== */
+  background:
+    linear-gradient(
+      135deg,
+      rgba(76, 45, 130, 0.85),
+      rgba(119, 69, 190, 0.72)
+    );
+
+  box-shadow:
+    0 0 0 1px rgba(168, 121, 245, 0.14),
+    0 10px 35px rgba(87, 47, 148, 0.22);
+}
+
+/* =========================================
+   08. CARDS
+========================================= */
 
 .activity-card,
 .streak-card,
@@ -244,20 +409,26 @@ p {
 .saved-activities-card,
 .goal-circle-card,
 .conversation-card {
-  background: var(--bg-card);
+  position: relative;
+
+  padding: 28px;
+
+  background: var(--card-gradient);
   border: 1px solid var(--border-color);
+  border-radius: var(--radius-large);
+
   color: var(--text-primary);
 
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-card);
 
-  min-width: 0;
-  overflow-wrap: break-word;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 
   transition:
-    background 0.25s ease,
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
+    border-color var(--transition),
+    background var(--transition),
+    transform var(--transition),
+    box-shadow var(--transition);
 }
 
 .activity-card:hover,
@@ -271,86 +442,195 @@ p {
 .saved-activities-card:hover,
 .goal-circle-card:hover,
 .conversation-card:hover {
-  background: var(--bg-card-hover);
   border-color: var(--border-hover);
+  box-shadow: var(--purple-glow);
 }
 
+/* =========================================
+   09. ACTIVITY CARD
+========================================= */
 
-/* ==================================================
-   08. ACTIVITY CARD
-================================================== */
+.activity-card {
+  max-width: 850px;
+  margin: 30px auto;
+  padding: clamp(26px, 5vw, 48px);
+}
 
-.activity-card h2 {
+#activitySymbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 58px;
+  height: 58px;
+
+  margin-bottom: 24px;
+
+  border-radius: 18px;
+
+  color: var(--purple-bright);
+  background: rgba(116, 70, 183, 0.18);
+
+  font-size: 1.8rem;
+}
+
+#activityTitle {
+  font-size: clamp(1.6rem, 4vw, 2.25rem);
+}
+
+#activityDescription {
+  margin-bottom: 30px;
+}
+
+#activityQuestion {
   color: var(--text-primary);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 25px 0;
 }
 
-.activity-symbol {
-  color: var(--purple-light);
-}
-
-.question-area {
-  background: rgba(12, 9, 29, 0.72);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-}
-
-.answer-list {
+#answerList {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .answer {
-  background: rgba(37, 23, 66, 0.65);
-  color: var(--text-primary);
+  min-height: 58px;
+  padding: 14px 18px;
+
+  text-align: left;
+
+  color: var(--text-secondary);
+  background: rgba(14, 10, 28, 0.76);
+
   border: 1px solid var(--border-color);
-  transition: 0.2s ease;
+  border-radius: 14px;
+
+  transition: var(--transition);
 }
 
-.answer:hover {
-  background: rgba(76, 45, 130, 0.65);
+.answer:hover:not(:disabled) {
+  color: white;
+  border-color: var(--purple-light);
+  background: rgba(82, 51, 132, 0.35);
+}
+
+.answer.selected {
+  color: white;
   border-color: var(--purple-light);
 }
 
-.answer:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
+.answer.correct {
+  background: rgba(65, 120, 92, 0.24);
+  border-color: rgba(103, 195, 143, 0.65);
 }
 
+.answer.wrong {
+  background: rgba(150, 58, 75, 0.18);
+  border-color: rgba(222, 102, 123, 0.65);
+}
 
-/* ==================================================
-   09. BUTTONS
-================================================== */
+#answerFeedback {
+  min-height: 28px;
+  margin-top: 18px;
+  color: var(--purple-bright);
+}
+
+#progressText {
+  margin-top: 22px;
+  color: var(--purple-light);
+  font-size: 0.9rem;
+}
+
+/* =========================================
+   10. BUTTONS
+========================================= */
 
 .primary-button,
 button.primary-button {
+  min-height: 48px;
+  padding: 12px 23px;
+
+  color: white;
   background: var(--accent-gradient);
-  color: #ffffff;
-  border: 1px solid rgba(190, 150, 255, 0.28);
-  transition: 0.25s ease;
+
+  border: 1px solid rgba(190, 150, 255, 0.3);
+  border-radius: var(--radius-pill);
+
+  font-weight: 650;
+  letter-spacing: 0.01em;
+
+  box-shadow: 0 8px 25px rgba(83, 43, 147, 0.2);
+
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition),
+    filter var(--transition);
 }
 
-.primary-button:hover,
-button.primary-button:hover {
-  filter: brightness(1.15);
-  box-shadow: 0 0 22px rgba(133, 80, 217, 0.28);
+.primary-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.13);
+  box-shadow: 0 12px 30px rgba(133, 80, 217, 0.3);
 }
 
-.primary-button:disabled,
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.secondary-button,
+.text-button {
+  min-height: 44px;
+  padding: 10px 18px;
+
+  color: var(--purple-bright);
+  background: rgba(94, 59, 145, 0.13);
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+
+  font-weight: 600;
+
+  transition: var(--transition);
 }
 
+.secondary-button:hover,
+.text-button:hover {
+  color: white;
+  background: rgba(106, 66, 164, 0.28);
+  border-color: var(--border-hover);
+}
 
-/* ==================================================
-   10. INPUTS AND TEXT AREAS
-================================================== */
+#nextActivity,
+#surpriseButton,
+#saveActivityButton {
+  margin: 10px 8px 0 0;
+}
+
+/* =========================================
+   11. INPUTS
+========================================= */
 
 input,
 textarea,
 select {
-  background: rgba(12, 9, 29, 0.9);
+  width: 100%;
+  min-height: 48px;
+  padding: 13px 16px;
+
   color: var(--text-primary);
+  background: rgba(12, 9, 29, 0.86);
+
   border: 1px solid var(--border-color);
+  border-radius: 13px;
+
+  outline: none;
+
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
 }
 
 input::placeholder,
@@ -361,154 +641,251 @@ textarea::placeholder {
 input:focus,
 textarea:focus,
 select:focus {
-  outline: none;
   border-color: var(--purple-light);
   box-shadow: 0 0 0 3px rgba(135, 85, 210, 0.15);
 }
 
-
-/* ==================================================
-   11. COMMUNITY
-================================================== */
-
-.community-grid {
-  min-width: 0;
+select option {
+  color: white;
+  background: #17102f;
 }
 
-.community-card form {
+form {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.community-card input {
-  min-width: 0;
+form button[type="submit"] {
+  align-self: flex-start;
 }
 
-.community-card form button {
-  flex-shrink: 0;
-}
-
-
-/* ==================================================
+/* =========================================
    12. MY SPACE
-================================================== */
+========================================= */
 
-.my-space {
-  width: 100%;
-  min-width: 0;
+.my-space-section {
+  padding-top: 20px;
 }
 
 .my-space-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  width: 100%;
+  gap: 22px;
 }
 
-.profile-card,
-.my-space-card {
+.my-space-card,
+.profile-card {
   min-width: 0;
 }
 
-.profile-header {
+.profile-card {
+  grid-column: 1 / -1;
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  gap: 18px;
+
+  background:
+    radial-gradient(
+      ellipse at 90% 10%,
+      rgba(123, 74, 191, 0.22),
+      transparent 48%
+    ),
+    var(--card-gradient);
 }
 
-.profile-avatar {
-  flex-shrink: 0;
+.profile-card h3 {
+  font-size: 1.55rem;
 }
 
-.profile-details {
-  min-width: 0;
-  overflow-wrap: anywhere;
+.profile-card form {
+  max-width: 650px;
 }
 
-.profile-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
+.my-space-card h3 {
+  margin-bottom: 18px;
 }
 
+.my-space-card form {
+  margin-bottom: 20px;
+}
 
-/* ==================================================
+/* =========================================
    13. JOURNAL
-================================================== */
+========================================= */
 
-.journal-card {
-  min-width: 0;
-}
+.journal-entry-card {
+  margin-top: 14px;
+  padding: 20px;
 
-.journal-list {
-  display: grid;
-  gap: 12px;
-}
-
-.journal-entry {
-  background: rgba(20, 13, 38, 0.85);
+  background: rgba(13, 9, 27, 0.75);
   border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  border-radius: 17px;
+}
 
-  padding: 15px;
-  border-radius: 14px;
+.journal-entry-card h4 {
+  margin-bottom: 8px;
+}
 
-  min-width: 0;
+.journal-entry-card p {
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
-.journal-actions {
-  display: flex;
-  flex-wrap: wrap;
+.privacy-tag {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-}
 
-.privacy-toggle {
-  background: rgba(20, 13, 38, 0.85);
+  margin: 8px 0;
+  padding: 5px 11px;
+
+  color: var(--purple-bright);
+  background: rgba(116, 70, 183, 0.16);
+
   border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  border-radius: var(--radius-pill);
+
+  font-size: 0.75rem;
+  font-weight: 650;
 }
 
+/* =========================================
+   14. GOAL CIRCLES
+========================================= */
 
-/* ==================================================
-   14. GOALS
-================================================== */
-
-.goal-card {
-  min-width: 0;
-}
-
-.goal-list {
+#goalCircles,
+.goal-circles-grid {
   display: grid;
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
-.goal-item {
-  background: rgba(20, 13, 38, 0.85);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
+.goal-circle-card {
+  padding: 20px;
+  border-radius: 18px;
+}
 
-  padding: 15px;
-  border-radius: 14px;
+.goal-circle-card h4 {
+  margin-bottom: 10px;
+}
 
-  min-width: 0;
+.goal-circle-card p {
   overflow-wrap: anywhere;
 }
 
-.goal-actions {
-  display: flex;
-  flex-wrap: wrap;
+/* =========================================
+   15. SAVED DISCOVERIES
+========================================= */
+
+#savedDiscoveries {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.saved-discovery-card {
+  padding: 20px;
+
+  background: rgba(13, 9, 27, 0.75);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+}
+
+.discovery-symbol {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+  margin-bottom: 14px;
+
+  color: var(--purple-bright);
+  background: rgba(116, 70, 183, 0.16);
+  border-radius: 13px;
+
+  font-size: 1.35rem;
+}
+
+/* =========================================
+   16. DELETE BUTTONS
+========================================= */
+
+.delete-entry-button {
+  margin-top: 12px;
+  padding: 7px 13px;
+
+  color: #d7b8ee;
+  background: rgba(119, 52, 102, 0.12);
+
+  border: 1px solid rgba(200, 112, 171, 0.2);
+  border-radius: var(--radius-pill);
+
+  font-size: 0.8rem;
+
+  transition: var(--transition);
+}
+
+.delete-entry-button:hover {
+  color: white;
+  background: rgba(145, 55, 105, 0.3);
+}
+
+/* =========================================
+   17. COMMUNITY
+========================================= */
+
+.wall-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.wall-item:last-child {
+  border-bottom: none;
+}
+
+.wall-item p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.avatar {
+  flex: 0 0 40px;
+
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+  background: var(--accent-gradient);
+
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+/* =========================================
+   18. STREAK / PROGRESS
+========================================= */
+
+#completedCount {
+  color: var(--purple-bright);
+  font-size: 2rem;
+  font-weight: 750;
 }
 
 .goal-progress {
-  width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.09);
-  border-radius: 20px;
+  height: 9px;
   overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius-pill);
 }
 
 .goal-progress-bar {
@@ -517,564 +894,307 @@ select:focus {
   border-radius: inherit;
 }
 
+/* =========================================
+   19. FEEDBACK / STATUS
+========================================= */
 
-/* ==================================================
-   15. GOAL CIRCLES
-================================================== */
+#profileStatus,
+#journalStatus,
+#goalStatus,
+#discoveryStatus,
+#authStatusMessage {
+  display: none;
+  padding: 12px 15px;
 
-.goal-circles-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  width: 100%;
-}
+  background: rgba(94, 59, 145, 0.12);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 
-.goal-circle-card {
-  min-width: 0;
-  padding: 20px;
-  border-radius: 18px;
+  font-size: 0.88rem;
   overflow-wrap: anywhere;
 }
 
-.goal-circle-members {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-
-/* ==================================================
-   16. SAVED ACTIVITIES
-================================================== */
-
-.saved-activities-card {
-  min-width: 0;
-}
-
-
-/* ==================================================
-   17. THREADED CONVERSATIONS
-================================================== */
-
-.conversation-card {
-  min-width: 0;
-  padding: 20px;
-  border-radius: 18px;
-  overflow-wrap: anywhere;
-}
-
-.conversation-reply {
-  border-left: 2px solid rgba(153, 105, 225, 0.55);
-  margin: 14px 0 0 12px;
-  padding: 10px 0 10px 14px;
-  min-width: 0;
-}
-
-.conversation-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-}
-
-.conversation-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.conversation-form textarea {
-  flex: 1 1 220px;
-  min-width: 0;
-}
-
-
-/* ==================================================
-   18. PRINCIPLES
-================================================== */
-
-.principles {
-  min-width: 0;
-}
-
-
-/* ==================================================
-   19. FOOTER
-================================================== */
-
-footer {
-  background: rgba(5, 4, 11, 0.55);
-  border-top: 1px solid var(--border-color);
-  color: var(--text-secondary);
-}
-
-
-/* ==================================================
-   20. AUTHENTICATION MODAL
-================================================== */
+/* =========================================
+   20. MODAL
+========================================= */
 
 dialog,
 .modal-content {
-  background: #120d24;
   color: var(--text-primary);
+  background:
+    radial-gradient(
+      ellipse at 90% 0%,
+      rgba(119, 69, 190, 0.17),
+      transparent 50%
+    ),
+    #120d24;
+
   border: 1px solid var(--border-color);
+  border-radius: 24px;
+}
+
+dialog {
+  width: min(460px, calc(100% - 32px));
+  max-width: 460px;
+  padding: 30px;
+
+  box-shadow: 0 25px 90px rgba(0, 0, 0, 0.55);
 }
 
 dialog::backdrop {
   background: rgba(3, 2, 9, 0.78);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
 }
 
+dialog:not([open]) {
+  display: none;
+}
 
-/* ==================================================
-   21. TABLETS AND SMALLER SCREENS
-   MAX WIDTH: 760PX
-================================================== */
+dialog[open] {
+  display: block;
+}
+
+/* =========================================
+   21. FOOTER
+========================================= */
+
+footer {
+  padding: 35px 24px;
+
+  text-align: center;
+
+  background: rgba(5, 4, 11, 0.55);
+  border-top: 1px solid var(--border-color);
+
+  color: var(--text-secondary);
+}
+
+footer p {
+  margin: 5px 0;
+  font-size: 0.88rem;
+}
+
+/* =========================================
+   22. INSTALL BUTTON
+========================================= */
+
+#installButton {
+  margin-top: 15px;
+}
+
+#installButton[hidden] {
+  display: none;
+}
+
+/* =========================================
+   23. ACCESSIBILITY
+========================================= */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--purple-light);
+  outline-offset: 3px;
+}
+
+/* =========================================
+   24. TABLET
+========================================= */
+
+@media (max-width: 900px) {
+
+  .topbar {
+    padding: 14px 25px;
+  }
+
+  .main-nav {
+    gap: 16px;
+  }
+
+  main {
+    width: min(100% - 36px, 760px);
+  }
+
+  .my-space-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card {
+    grid-column: auto;
+  }
+}
+
+/* =========================================
+   25. MOBILE
+========================================= */
 
 @media (max-width: 760px) {
 
-  html,
-  body {
-    width: 100%;
-    overflow-x: hidden;
-  }
-
   .topbar {
-    height: 64px;
-    padding: 0 18px;
+    min-height: auto;
+    flex-wrap: wrap;
+    gap: 14px;
+
+    padding: 15px 20px;
   }
 
   .brand {
-    font-size: 20px;
+    font-size: 1.15rem;
   }
 
-  .top-actions {
-    gap: 7px;
-  }
-
-  .local-pill {
-    padding: 6px 9px;
-    font-size: 10px;
-  }
-
-  .shell {
+  .main-nav {
+    order: 3;
     width: 100%;
-    padding: 35px 18px 25px;
+
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+
+    overflow-x: auto;
+    padding: 8px 0 3px;
   }
 
-  .intro {
-    max-width: 100%;
-    margin-bottom: 38px;
+  .main-nav a {
+    flex-shrink: 0;
+    font-size: 0.8rem;
   }
 
-  .intro h1 {
-    font-size: clamp(38px, 8vw, 58px);
-    letter-spacing: -2.5px;
-    line-height: 1.05;
-    overflow-wrap: break-word;
+  #guest-view,
+  #user-view {
+    margin-left: auto;
   }
 
-  .intro-copy {
-    font-size: 15px;
-    line-height: 1.6;
+  main {
+    width: calc(100% - 32px);
+    padding-top: 35px;
   }
 
-  .section-heading {
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
+  section {
+    margin-bottom: 65px;
   }
 
-  .section-heading h2 {
-    font-size: 21px;
+  .hero,
+  .intro-section {
+    padding: 40px 0 25px;
   }
 
   .mood-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 9px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
   .mood {
-    min-height: 88px;
-    padding: 13px 10px;
-  }
-
-  .feature-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-    margin: 20px 0 45px;
-  }
-
-  .side-stack {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    min-height: 90px;
+    padding: 17px;
   }
 
   .activity-card,
   .streak-card,
   .prompt-card,
-  .community-card {
-    min-width: 0;
-    padding: 19px;
-  }
-
-  .activity-card h2 {
-    font-size: 24px;
-  }
-
-  .community-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-  }
-
-  .principles {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  footer {
-    padding: 20px 18px;
-    gap: 10px;
-  }
-
-  /* My Space */
-  .my-space-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-  }
-
-  /* Goal Circles */
-  .goal-circles-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-  }
-
-  /* New section cards */
+  .community-card,
   .profile-card,
-  .my-space-card,
-  .journal-card,
-  .goal-card,
-  .saved-activities-card,
-  .goal-circle-card,
-  .conversation-card {
-    min-width: 0;
-    padding: 19px;
+  .my-space-card {
+    padding: 23px;
+    border-radius: 21px;
   }
 
-  .conversation-reply {
-    margin-left: 8px;
-    padding-left: 12px;
+  #answerList {
+    grid-template-columns: 1fr;
+  }
+
+  #goalCircles,
+  .goal-circles-grid,
+  #savedDiscoveries {
+    grid-template-columns: 1fr;
+  }
+
+  form button[type="submit"] {
+    width: 100%;
   }
 }
 
-
-/* ==================================================
-   22. MOBILE PHONES
-   MAX WIDTH: 480PX
-================================================== */
+/* =========================================
+   26. SMALL PHONES
+========================================= */
 
 @media (max-width: 480px) {
 
   .topbar {
-    padding: 0 14px;
-    height: 60px;
+    padding: 13px 16px;
   }
 
-  .brand {
-    font-size: 19px;
+  .main-nav {
+    gap: 16px;
   }
 
-  .top-actions {
-    gap: 6px;
+  main {
+    width: calc(100% - 28px);
   }
 
-  .local-pill {
-    font-size: 9px;
-    padding: 6px 8px;
+  h1 {
+    font-size: 2.35rem;
   }
 
-  .shell {
-    padding: 30px 15px 22px;
-  }
-
-  .intro {
-    margin-bottom: 34px;
-  }
-
-  .eyebrow {
-    font-size: 10px;
-    letter-spacing: 1.3px;
-  }
-
-  .intro h1 {
-    font-size: clamp(36px, 10vw, 48px);
-    letter-spacing: -2px;
-    line-height: 1.04;
+  h2 {
+    font-size: 1.75rem;
   }
 
   .intro-copy {
-    font-size: 14px;
-    margin-top: 15px;
-  }
-
-  .section-heading {
-    align-items: flex-start;
-  }
-
-  .section-heading h2 {
-    font-size: 20px;
-    line-height: 1.25;
-  }
-
-  .text-button {
-    font-size: 12px;
-    white-space: nowrap;
-  }
-
-  .mood-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 9px;
+    font-size: 0.95rem;
   }
 
   .mood {
-    min-height: 82px;
-    padding: 12px;
-    font-size: 12px;
-  }
-
-  .mood span {
-    font-size: 20px;
-    margin-bottom: 5px;
-  }
-
-  .feature-grid {
-    margin-top: 18px;
-    gap: 13px;
-  }
-
-  .side-stack {
-    grid-template-columns: 1fr;
-  }
-
-  .activity-card,
-  .streak-card,
-  .prompt-card,
-  .community-card {
-    padding: 17px;
-    border-radius: 17px;
-  }
-
-  .activity-symbol {
-    width: 54px;
-    height: 54px;
-    font-size: 26px;
-    margin: 22px 0 14px;
-  }
-
-  .activity-card h2 {
-    font-size: 23px;
-  }
-
-  .question-area {
+    min-height: 80px;
     padding: 14px;
+    font-size: 0.9rem;
   }
 
-  .answer-list {
-    grid-template-columns: 1fr 1fr;
-    gap: 7px;
+  .activity-card {
+    padding: 22px 18px;
   }
 
-  .answer {
-    padding: 10px;
-    font-size: 12px;
-  }
-
-  .card-footer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .primary-button {
-    width: 100%;
-    padding: 12px;
-  }
-
-  .community-card form {
-    flex-direction: column;
-  }
-
-  .community-card form button {
+  .primary-button,
+  .secondary-button {
     width: 100%;
   }
 
-  .community-card input {
+  #nextActivity,
+  #surpriseButton,
+  #saveActivityButton {
     width: 100%;
-    min-height: 44px;
+    margin: 8px 0;
   }
 
-  .principles {
-    padding: 23px 0;
-  }
-
-  footer {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 18px 15px;
-  }
-
-  footer p {
-    text-align: left;
-    max-width: 100%;
-  }
-
-  footer p span {
-    display: block;
-    margin: 4px 0 0;
-  }
-
-  /* My Space */
-  .profile-header {
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .profile-stats {
-    gap: 12px;
-  }
-
-  .profile-card,
-  .my-space-card,
-  .journal-card,
-  .goal-card,
-  .saved-activities-card,
-  .goal-circle-card,
-  .conversation-card {
-    padding: 17px;
-    border-radius: 17px;
-  }
-
-  /* Journal and Goals */
-  .journal-actions,
-  .goal-actions,
-  .conversation-actions {
-    gap: 8px;
-  }
-
-  /* Threaded Conversations */
-  .conversation-reply {
-    margin-left: 5px;
-    padding-left: 10px;
-  }
-
-  .conversation-form {
-    flex-direction: column;
-  }
-
-  .conversation-form textarea,
-  .conversation-form button {
-    width: 100%;
+  .wall-item {
+    gap: 11px;
   }
 }
 
-
-/* ==================================================
-   23. VERY SMALL PHONES
-   MAX WIDTH: 360PX
-================================================== */
+/* =========================================
+   27. VERY SMALL PHONES
+========================================= */
 
 @media (max-width: 360px) {
 
-  .topbar {
-    padding: 0 10px;
-  }
-
   .brand {
-    font-size: 17px;
+    font-size: 1rem;
   }
 
-  .top-actions {
-    gap: 4px;
+  .main-nav a {
+    font-size: 0.72rem;
   }
 
-  .local-pill {
-    padding: 5px 6px;
-    font-size: 8px;
+  h1 {
+    font-size: 2rem;
   }
 
-  .shell {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .intro h1 {
-    font-size: 35px;
-  }
-
-  .mood {
-    padding: 10px;
-  }
-
-  .answer-list {
-    grid-template-columns: 1fr;
-  }
-
-  /* My Space */
-  .profile-header {
-    flex-direction: column;
-  }
-
-  .profile-stats {
+  .mood-grid {
     gap: 9px;
   }
 
-  /* New section cards */
-  .profile-card,
-  .my-space-card,
-  .journal-card,
-  .goal-card,
-  .saved-activities-card,
-  .goal-circle-card,
-  .conversation-card {
-    padding: 15px;
+  .mood {
+    padding: 12px;
   }
 }
-
-
-/* ==================================================
-   24. FINAL OVERFLOW PROTECTION
-================================================== */
-
-img,
-video,
-iframe {
-  max-width: 100%;
-}
-
-input,
-button,
-textarea,
-select {
-  max-width: 100%;
-}
-
-.activity-card,
-.community-card,
-.streak-card,
-.prompt-card,
-.profile-card,
-.my-space-card,
-.journal-card,
-.goal-card,
-.saved-activities-card,
-.goal-circle-card,
-.conversation-card {
-  min-width: 0;
-  overflow-wrap: break-word;
-}
-
-
-/* ==================================================
-   END OF EVERYDAY STYLESHEET
-================================================== */
