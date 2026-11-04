@@ -1,627 +1,1245 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0f172a">
-  <meta name="description" content="Make today a little more interesting with EVERYDAY.">
-
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-
-  <title>EVERYDAY — Make today interesting</title>
-
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css">
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./app.js" defer></script>
-</head>
-
-<body>
-
-  <!-- HEADER -->
-  <header class="topbar">
-    <a class="brand" href="#home">EVERYDAY<span>.</span></a>
-
-    <nav class="main-nav" aria-label="Main navigation">
-      <a href="#home">Discover</a>
-      <a href="#activities">Explore</a>
-      <a href="#community">Community</a>
-      <a href="#my-space">My Space</a>
-    </nav>
-
-    <div class="top-actions">
-      <div id="guest-view" class="local-pill">
-        <i></i> Guest Mode
-      </div>
-
-      <div id="user-view" class="top-actions" style="display:none">
-        <span id="userEmailTag" class="local-pill"></span>
-        <button id="logoutBtn" class="icon-button" type="button">
-          Sign Out
-        </button>
-      </div>
-
-      <button id="openAuthModal" class="icon-button" type="button">
-        Sign In / Up
-      </button>
-    </div>
-  </header>
-
-  <main class="shell" id="home">
-
-    <!-- INTRODUCTION -->
-    <section class="intro">
-      <p class="eyebrow">A LITTLE SOMETHING FOR EVERY DAY</p>
-
-      <h1>
-        Make today
-        <span>a little more interesting.</span>
-      </h1>
-
-      <p class="intro-copy">
-        Find something to try, learn something new, or share a moment
-        with others.
-      </p>
-    </section>
-
-    <!-- MOOD DISCOVERY -->
-    <section class="mood-section">
-      <p class="eyebrow">START WITH YOU</p>
-
-      <div class="section-heading">
-        <h2>What are you in the mood for?</h2>
-
-        <button id="surpriseButton" class="text-button" type="button">
-          Surprise me ↗
-        </button>
-      </div>
-
-      <div class="mood-grid">
-        <button class="mood active" type="button" data-mood="Curious">
-          <span>⌕</span>
-          Curious
-        </button>
-
-        <button class="mood" type="button" data-mood="Playful">
-          <span>◉</span>
-          Playful
-        </button>
-
-        <button class="mood" type="button" data-mood="Creative">
-          <span>✎</span>
-          Creative
-        </button>
-
-        <button class="mood" type="button" data-mood="Social">
-          <span>◎</span>
-          Social
-        </button>
-
-        <button class="mood" type="button" data-mood="Productive">
-          <span class="productive-icon" aria-hidden="true">
-            <svg
-              viewBox="0 0 24 24"
-              width="22"
-              height="22"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="12" cy="12" r="9"></circle>
-              <circle cx="12" cy="12" r="5.5"></circle>
-              <circle cx="12" cy="12" r="2"></circle>
-            </svg>
-          </span>
-          Productive
-        </button>
-
-        <button class="mood" type="button" data-mood="Relaxed">
-          <span>☼</span>
-          Relaxed
-        </button>
-      </div>
-    </section>
-
-    <!-- ACTIVITIES -->
-    <section class="feature-grid" id="activities">
-
-      <article class="activity-card">
-        <div class="card-topline">
-          <p id="activityType" class="eyebrow">QUICK TRIVIA</p>
-          <span class="time-tag">5 MIN</span>
-        </div>
-
-        <div id="activitySymbol" class="activity-symbol">⌕</div>
-
-        <h2 id="activityTitle">
-          A little knowledge goes a long way
-        </h2>
-
-        <p id="activityDescription" class="muted">
-          Try a quick question and see what you know.
-        </p>
-
-        <div class="question-area">
-          <p id="activityQuestion" class="question">
-            Which planet is known for its prominent rings?
-          </p>
-
-          <div id="answerList" class="answer-list"></div>
-
-          <p id="answerFeedback" class="feedback" aria-live="polite"></p>
-        </div>
-
-        <div class="card-footer">
-          <span id="progressText">
-            A small moment for yourself
-          </span>
-
-          <button id="nextActivity" class="primary-button" type="button">
-            Next Activity →
-          </button>
-        </div>
-      </article>
-
-      <div class="side-stack">
-
-        <article class="streak-card">
-          <p class="eyebrow">YOUR EVERYDAY</p>
-
-          <h3>Little steps count.</h3>
-
-          <p id="streakNotice" class="muted">
-            Your completed activities stay on this device in guest mode.
-          </p>
-
-          <div class="stat-row">
-            <strong id="completedCount">0</strong>
-            <span>activities completed</span>
-          </div>
-        </article>
-
-        <article class="prompt-card">
-          <p class="eyebrow">A THOUGHT FOR TODAY</p>
-
-          <p id="dailyThought">
-            Curiosity is a good place to begin.
-          </p>
-
-          <button id="newThought" class="text-button" type="button">
-            Another thought ↗
-          </button>
-        </article>
-
-      </div>
-    </section>
-
-    <!-- MY SPACE -->
-    <section class="my-space-section" id="my-space">
-
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">YOUR PERSONAL SPACE</p>
-          <h2>Make room for yourself.</h2>
-          <p class="muted">
-            Keep track of your thoughts, goals, and discoveries.
-          </p>
-        </div>
-      </div>
-
-      <!-- PROFILE -->
-      <article class="my-space-profile">
-        <div class="profile-avatar" aria-hidden="true">
-          ✧
-        </div>
-
-        <div class="profile-details">
-          <p class="eyebrow">YOUR PROFILE</p>
-          <h3 id="profileNickname">Your everyday identity</h3>
-          <p class="muted" id="profileDescription">
-            Choose a nickname and make this space your own.
-          </p>
-        </div>
-
-        <button
-          id="editProfileButton"
-          class="text-button"
-          type="button"
-        >
-          Edit profile ↗
-        </button>
-      </article>
-
-      <!-- PROFILE EDITOR -->
-      <article class="my-space-card" id="profileEditor">
-        <p class="eyebrow">PERSONAL DETAILS</p>
-
-        <h3>How would you like to be known?</h3>
-
-        <label for="nicknameInput">Nickname</label>
-
-        <input
-          id="nicknameInput"
-          type="text"
-          maxlength="30"
-          placeholder="Choose a nickname"
-          autocomplete="nickname"
-        >
-
-        <label for="profileBioInput">A little about you</label>
-
-        <textarea
-          id="profileBioInput"
-          maxlength="160"
-          rows="3"
-          placeholder="What are you interested in?"
-        ></textarea>
-
-        <button
-          id="saveProfileButton"
-          class="primary-button"
-          type="button"
-        >
-          Save profile
-        </button>
-
-        <p
-          id="profileStatus"
-          class="feedback"
-          aria-live="polite"
-        ></p>
-      </article>
-
-      <!-- JOURNAL -->
-      <div class="my-space-grid">
-
-        <article class="my-space-card journal-card">
-          <div class="card-topline">
-            <p class="eyebrow">YOUR JOURNAL</p>
-            <span class="time-tag">JUST FOR YOU</span>
-          </div>
-
-          <h3>A place for your thoughts.</h3>
-
-          <p class="muted">
-            Write about your day, an idea, a discovery, or anything
-            you want to remember.
-          </p>
-
-          <form id="journalForm">
-
-            <label for="journalTitle">
-              Entry title
-            </label>
-
-            <input
-              id="journalTitle"
-              type="text"
-              maxlength="100"
-              placeholder="Give this moment a title..."
-            >
-
-            <label for="journalInput">
-              Your entry
-            </label>
-
-            <textarea
-              id="journalInput"
-              rows="6"
-              maxlength="5000"
-              placeholder="What's on your mind today?"
-              required
-            ></textarea>
-
-            <label for="journalPrivacy">
-              Who can see this entry?
-            </label>
-
-            <select id="journalPrivacy" name="journalPrivacy">
-              <option value="private" selected>
-                Private — only me
-              </option>
-
-              <option value="shared">
-                Shared — visible to the community
-              </option>
-            </select>
-
-            <p class="notice">
-              Your journal is private by default. You decide whether
-              to share an entry.
-            </p>
-
-            <button
-              id="saveJournalButton"
-              class="primary-button"
-              type="submit"
-            >
-              Save journal entry
-            </button>
-
-            <p
-              id="journalStatus"
-              class="feedback"
-              aria-live="polite"
-            ></p>
-
-          </form>
-
-          <div class="journal-entries">
-            <h4>Your entries</h4>
-
-            <div id="journalEntries">
-              <p class="muted">
-                Your saved entries will appear here.
-              </p>
-            </div>
-          </div>
-        </article>
-
-        <!-- GOAL CIRCLES -->
-        <article class="my-space-card goals-card">
-
-          <div class="card-topline">
-            <p class="eyebrow">GOAL CIRCLES</p>
-            <span class="time-tag">GROW TOGETHER</span>
-          </div>
-
-          <h3>Small steps, meaningful progress.</h3>
-
-          <p class="muted">
-            Create a personal goal or work toward something with
-            other people.
-          </p>
-
-          <form id="goalForm">
-
-            <label for="goalTitle">
-              What would you like to work on?
-            </label>
-
-            <input
-              id="goalTitle"
-              type="text"
-              maxlength="100"
-              placeholder="e.g. Read one book this month"
-              required
-            >
-
-            <label for="goalDescription">
-              Add a little context
-            </label>
-
-            <textarea
-              id="goalDescription"
-              rows="3"
-              maxlength="500"
-              placeholder="What does this goal mean to you?"
-            ></textarea>
-
-            <label for="goalPrivacy">
-              Circle visibility
-            </label>
-
-            <select id="goalPrivacy" name="goalPrivacy">
-              <option value="private" selected>
-                Private — just me
-              </option>
-
-              <option value="shared">
-                Shared — invite others
-              </option>
-            </select>
-
-            <button
-              id="createGoalButton"
-              class="primary-button"
-              type="submit"
-            >
-              Create goal
-            </button>
-
-            <p
-              id="goalStatus"
-              class="feedback"
-              aria-live="polite"
-            ></p>
-
-          </form>
-
-          <div class="goal-list">
-            <h4>Your goals</h4>
-
-            <div id="goalCircles">
-              <p class="muted">
-                Your goals will appear here.
-              </p>
-            </div>
-          </div>
-
-        </article>
-
-      </div>
-
-      <!-- SAVED DISCOVERIES -->
-      <article class="my-space-card saved-section">
-
-        <p class="eyebrow">YOUR COLLECTION</p>
-
-        <h3>Saved discoveries.</h3>
-
-        <p class="muted">
-          Keep the activities, ideas, and conversations you want
-          to return to.
-        </p>
-
-        <div id="savedDiscoveries">
-          <p class="muted">
-            You haven't saved anything yet.
-          </p>
-        </div>
-
-      </article>
-
-    </section>
-
-    <!-- COMMUNITY -->
-    <section class="community-section" id="community">
-
-      <p class="eyebrow">A LITTLE MORE HUMAN</p>
-
-      <div class="section-heading">
-        <h2>Share a moment with others.</h2>
-      </div>
-
-      <div class="community-grid">
-
-        <article class="community-card">
-          <div class="community-icon">♡</div>
-
-          <h3>Leave a little thought.</h3>
-
-          <p class="muted">
-            Share something you learned, noticed, or thought about today.
-          </p>
-
-          <form id="thoughtForm">
-            <label class="sr-only" for="thoughtInput">
-              Your thought
-            </label>
-
-            <input
-              id="thoughtInput"
-              type="text"
-              maxlength="300"
-              placeholder="Write something..."
-              required
-            >
-
-            <button class="primary-button" type="submit">
-              Share
-            </button>
-          </form>
-
-          <p class="notice">
-            Your thought is saved on this device in guest mode.
-          </p>
-        </article>
-
-        <article class="community-card community-list">
-          <div class="community-icon">✧</div>
-
-          <h3>Community wall</h3>
-
-          <p class="muted">
-            Small thoughts from everyday people.
-          </p>
-
-          <div id="communityWall"></div>
-        </article>
-
-      </div>
-    </section>
-
-    <!-- EVERYDAY PRINCIPLES -->
-    <section class="principles">
-
-      <div>
-        <span>01</span>
-        <strong>Stay curious.</strong>
-        <p>There is always something new to discover.</p>
-      </div>
-
-      <div>
-        <span>02</span>
-        <strong>Keep it simple.</strong>
-        <p>Small moments can make an ordinary day better.</p>
-      </div>
-
-      <div>
-        <span>03</span>
-        <strong>Stay connected.</strong>
-        <p>Share ideas and make room for other perspectives.</p>
-      </div>
-
-    </section>
-
-    <button
-      id="installButton"
-      class="primary-button"
-      type="button"
-      hidden
-    >
-      Install EVERYDAY
-    </button>
-
-  </main>
-
-  <!-- FOOTER -->
-  <footer>
-    <a class="brand" href="#home">EVERYDAY<span>.</span></a>
-
-    <p>
-      Make today a little more interesting.
-      <span>Made for everyday.</span>
-    </p>
-  </footer>
-
-  <!-- AUTHENTICATION MODAL -->
-  <dialog id="authModal">
-
-    <div class="activity-card">
-
-      <div class="card-topline">
-        <p class="eyebrow">WELCOME TO EVERYDAY</p>
-
-        <button
-          id="closeAuthModal"
-          class="icon-button"
-          type="button"
-        >
-          Close
-        </button>
-      </div>
-
-      <h2>Sign in or create an account.</h2>
-
-      <p class="muted">
-        Enter your email and we'll send you a secure sign-in link.
-      </p>
-
-      <form id="magicLinkForm">
-
-        <label for="authEmailInput">
-          Email address
-        </label>
-
-        <input
-          id="authEmailInput"
-          type="email"
-          placeholder="you@example.com"
-          autocomplete="email"
-          required
-        >
-
-        <button class="primary-button" type="submit">
-          Send Magic Link
-        </button>
-
-        <p
-          id="authStatusMessage"
-          class="feedback"
-          aria-live="polite"
-        ></p>
-
-      </form>
-
-    </div>
-
-  </dialog>
-
-</body>
-</html>
+/* =========================================
+   EVERYDAY — ORIGINAL DESIGN
+   BLACK → DEEP INDIGO → PURPLE
+   Lighter dark glass interface
+========================================= */
+
+/* =========================================
+   01. DESIGN SYSTEM
+========================================= */
+
+:root {
+  --bg-main: #100d1b;
+  --bg-secondary: #191329;
+  --bg-tertiary: #211a38;
+
+  --bg-card: rgba(35, 27, 57, 0.82);
+  --bg-card-hover: rgba(49, 37, 76, 0.94);
+
+  --purple-dark: #38245f;
+  --purple: #8054c5;
+  --purple-light: #b99aee;
+  --purple-bright: #d0b8fa;
+
+  --indigo: #40366f;
+
+  --text-primary: #faf7ff;
+  --text-secondary: #c9bfd9;
+  --text-muted: #a196b2;
+
+  --border-color: rgba(190, 158, 242, 0.23);
+  --border-hover: rgba(196, 165, 246, 0.48);
+
+  --page-gradient:
+    linear-gradient(
+      135deg,
+      #0b0913 0%,
+      #171329 38%,
+      #211a3b 72%,
+      #352052 100%
+    );
+
+  --accent-gradient:
+    linear-gradient(
+      135deg,
+      #38245f 0%,
+      #59428c 48%,
+      #936bd0 100%
+    );
+
+  --card-gradient:
+    linear-gradient(
+      145deg,
+      rgba(49, 38, 76, 0.90),
+      rgba(27, 21, 46, 0.94)
+    );
+
+  --purple-glow:
+    0 0 35px rgba(151, 112, 213, 0.19);
+
+  --shadow-card:
+    0 18px 50px rgba(0, 0, 0, 0.20);
+
+  --radius-small: 12px;
+  --radius-medium: 20px;
+  --radius-large: 28px;
+  --radius-pill: 999px;
+
+  --transition: 220ms ease;
+}
+
+/* =========================================
+   02. RESET
+========================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+  background: var(--bg-main);
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+
+  font-family:
+    Inter,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  color: var(--text-primary);
+
+  background:
+    radial-gradient(
+      ellipse at 85% 8%,
+      rgba(139, 100, 205, 0.25),
+      transparent 38%
+    ),
+    radial-gradient(
+      ellipse at 10% 42%,
+      rgba(76, 68, 143, 0.24),
+      transparent 42%
+    ),
+    radial-gradient(
+      ellipse at 55% 100%,
+      rgba(117, 75, 175, 0.22),
+      transparent 45%
+    ),
+    var(--page-gradient);
+
+  background-attachment: fixed;
+
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: rgba(155, 113, 221, 0.5);
+  color: white;
+}
+
+/* =========================================
+   03. TYPOGRAPHY
+========================================= */
+
+h1,
+h2,
+h3,
+h4 {
+  margin-top: 0;
+  color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 6vw, 4.6rem);
+  font-weight: 750;
+}
+
+h2 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1.3rem;
+  font-weight: 650;
+}
+
+h4 {
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+small {
+  color: var(--text-muted);
+}
+
+.eyebrow {
+  color: var(--purple-light);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.intro-copy {
+  color: var(--text-secondary);
+  font-size: 1.08rem;
+  max-width: 650px;
+  line-height: 1.8;
+}
+
+/* =========================================
+   04. HEADER
+========================================= */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  min-height: 76px;
+
+  padding: 14px clamp(20px, 6vw, 90px);
+
+  background: rgba(15, 12, 27, 0.80);
+  border-bottom: 1px solid var(--border-color);
+
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.brand {
+  color: var(--text-primary);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+}
+
+.brand span {
+  color: var(--purple-light);
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.main-nav a {
+  position: relative;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 550;
+  transition: color var(--transition);
+}
+
+.main-nav a:hover {
+  color: white;
+}
+
+.main-nav a::after {
+  position: absolute;
+  content: "";
+  left: 0;
+  bottom: -8px;
+  width: 0;
+  height: 2px;
+  background: var(--purple-light);
+  transition: width var(--transition);
+}
+
+.main-nav a:hover::after {
+  width: 100%;
+}
+
+#guest-view,
+#user-view {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* =========================================
+   05. MAIN LAYOUT
+========================================= */
+
+main {
+  width: min(1160px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 64px 0 90px;
+}
+
+section {
+  margin-bottom: 90px;
+  scroll-margin-top: 105px;
+}
+
+.section-heading {
+  margin-bottom: 28px;
+}
+
+.section-heading p {
+  max-width: 650px;
+}
+
+/* =========================================
+   06. HERO / INTRO
+========================================= */
+
+.hero,
+.intro-section {
+  position: relative;
+  padding: 60px 0 45px;
+}
+
+.hero h1,
+.intro-section h1 {
+  max-width: 850px;
+  margin-bottom: 22px;
+}
+
+.hero h1 span,
+.intro-section h1 span {
+  color: var(--purple-light);
+}
+
+.hero p,
+.intro-section p {
+  max-width: 660px;
+  font-size: 1.08rem;
+}
+
+/* =========================================
+   07. MOOD DISCOVERY
+========================================= */
+
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.mood {
+  min-height: 110px;
+  padding: 23px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-medium);
+
+  color: var(--text-primary);
+  background: rgba(43, 34, 66, 0.76);
+
+  transition:
+    transform var(--transition),
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+.mood:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-hover);
+  background: rgba(69, 52, 103, 0.88);
+  box-shadow: var(--purple-glow);
+}
+
+.mood.active,
+.mood.selected {
+  border-color: rgba(204, 177, 250, 0.78);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(91, 67, 145, 0.88),
+      rgba(135, 93, 194, 0.78)
+    );
+
+  box-shadow:
+    0 0 0 1px rgba(190, 158, 242, 0.16),
+    0 10px 35px rgba(104, 69, 160, 0.22);
+}
+
+.productive-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================================
+   08. CARDS
+========================================= */
+
+.activity-card,
+.streak-card,
+.prompt-card,
+.community-card,
+.profile-card,
+.my-space-card,
+.journal-card,
+.goal-card,
+.saved-activities-card,
+.goal-circle-card,
+.conversation-card {
+  position: relative;
+
+  padding: 28px;
+
+  background: var(--card-gradient);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-large);
+
+  color: var(--text-primary);
+
+  box-shadow: var(--shadow-card);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  transition:
+    border-color var(--transition),
+    background var(--transition),
+    transform var(--transition),
+    box-shadow var(--transition);
+}
+
+.activity-card:hover,
+.streak-card:hover,
+.prompt-card:hover,
+.community-card:hover,
+.profile-card:hover,
+.my-space-card:hover,
+.journal-card:hover,
+.goal-card:hover,
+.saved-activities-card:hover,
+.goal-circle-card:hover,
+.conversation-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--purple-glow);
+}
+
+/* =========================================
+   09. ACTIVITY CARD
+========================================= */
+
+.activity-card {
+  max-width: 850px;
+  margin: 30px auto;
+  padding: clamp(26px, 5vw, 48px);
+}
+
+#activitySymbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 58px;
+  height: 58px;
+
+  margin-bottom: 24px;
+
+  border-radius: 18px;
+
+  color: var(--purple-bright);
+  background: rgba(145, 105, 205, 0.22);
+
+  font-size: 1.8rem;
+}
+
+#activityTitle {
+  font-size: clamp(1.6rem, 4vw, 2.25rem);
+}
+
+#activityDescription {
+  margin-bottom: 30px;
+}
+
+#activityQuestion {
+  color: var(--text-primary);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 25px 0;
+}
+
+#answerList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.answer {
+  min-height: 58px;
+  padding: 14px 18px;
+
+  text-align: left;
+
+  color: var(--text-secondary);
+  background: rgba(27, 21, 45, 0.82);
+
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+
+  transition: var(--transition);
+}
+
+.answer:hover:not(:disabled) {
+  color: white;
+  border-color: var(--purple-light);
+  background: rgba(105, 76, 155, 0.38);
+}
+
+.answer.selected {
+  color: white;
+  border-color: var(--purple-light);
+}
+
+.answer.correct {
+  background: rgba(65, 120, 92, 0.24);
+  border-color: rgba(103, 195, 143, 0.65);
+}
+
+.answer.wrong {
+  background: rgba(150, 58, 75, 0.18);
+  border-color: rgba(222, 102, 123, 0.65);
+}
+
+#answerFeedback {
+  min-height: 28px;
+  margin-top: 18px;
+  color: var(--purple-bright);
+}
+
+#progressText {
+  margin-top: 22px;
+  color: var(--purple-light);
+  font-size: 0.9rem;
+}
+
+/* =========================================
+   10. BUTTONS
+========================================= */
+
+.primary-button,
+button.primary-button {
+  min-height: 48px;
+  padding: 12px 23px;
+
+  color: white;
+  background: var(--accent-gradient);
+
+  border: 1px solid rgba(207, 177, 250, 0.38);
+  border-radius: var(--radius-pill);
+
+  font-weight: 650;
+  letter-spacing: 0.01em;
+
+  box-shadow: 0 8px 25px rgba(103, 70, 160, 0.22);
+
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition),
+    filter var(--transition);
+}
+
+.primary-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.13);
+  box-shadow: 0 12px 30px rgba(153, 109, 219, 0.30);
+}
+
+.secondary-button,
+.text-button {
+  min-height: 44px;
+  padding: 10px 18px;
+
+  color: var(--purple-bright);
+  background: rgba(115, 85, 163, 0.19);
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+
+  font-weight: 600;
+
+  transition: var(--transition);
+}
+
+.secondary-button:hover,
+.text-button:hover {
+  color: white;
+  background: rgba(132, 94, 187, 0.32);
+  border-color: var(--border-hover);
+}
+
+#nextActivity,
+#surpriseButton,
+#saveActivityButton {
+  margin: 10px 8px 0 0;
+}
+
+/* =========================================
+   11. INPUTS
+========================================= */
+
+input,
+textarea,
+select {
+  width: 100%;
+  min-height: 48px;
+  padding: 13px 16px;
+
+  color: var(--text-primary);
+  background: rgba(27, 21, 45, 0.90);
+
+  border: 1px solid var(--border-color);
+  border-radius: 13px;
+
+  outline: none;
+
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--purple-light);
+  box-shadow: 0 0 0 3px rgba(159, 119, 220, 0.18);
+}
+
+select option {
+  color: white;
+  background: #211a38;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+form button[type="submit"] {
+  align-self: flex-start;
+}
+
+/* =========================================
+   12. MY SPACE
+========================================= */
+
+.my-space-section {
+  padding-top: 20px;
+}
+
+.my-space-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.my-space-card,
+.profile-card {
+  min-width: 0;
+}
+
+.profile-card {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  background:
+    radial-gradient(
+      ellipse at 90% 10%,
+      rgba(153, 112, 211, 0.25),
+      transparent 48%
+    ),
+    var(--card-gradient);
+}
+
+.profile-card h3 {
+  font-size: 1.55rem;
+}
+
+.profile-card form {
+  max-width: 650px;
+  gap: 9px;
+}
+
+.my-space-card h3 {
+  margin-bottom: 18px;
+}
+
+.my-space-card form {
+  margin-bottom: 14px;
+}
+
+/* Compact profile editor */
+
+#profileEditor {
+  padding: 19px 22px;
+  border-radius: 20px;
+  gap: 10px;
+}
+
+#profileEditor h3 {
+  margin-bottom: 8px;
+}
+
+#profileEditor form {
+  gap: 9px;
+  margin-bottom: 8px;
+}
+
+#profileEditor input,
+#profileEditor textarea {
+  min-height: 40px;
+  padding: 9px 13px;
+  border-radius: 11px;
+}
+
+#profileEditor textarea {
+  min-height: 72px;
+}
+
+#profileEditor button {
+  min-height: 40px;
+  padding: 9px 17px;
+}
+
+/* =========================================
+   13. JOURNAL
+========================================= */
+
+.journal-entry-card {
+  margin-top: 14px;
+  padding: 20px;
+
+  background: rgba(27, 21, 45, 0.82);
+  border: 1px solid var(--border-color);
+  border-radius: 17px;
+}
+
+.journal-entry-card h4 {
+  margin-bottom: 8px;
+}
+
+.journal-entry-card p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.privacy-tag {
+  display: inline-flex;
+  align-items: center;
+
+  margin: 8px 0;
+  padding: 5px 11px;
+
+  color: var(--purple-bright);
+  background: rgba(145, 105, 205, 0.20);
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+/* =========================================
+   14. GOAL CIRCLES
+========================================= */
+
+#goalCircles,
+.goal-circles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.goal-circle-card {
+  padding: 20px;
+  border-radius: 18px;
+}
+
+.goal-circle-card h4 {
+  margin-bottom: 10px;
+}
+
+.goal-circle-card p {
+  overflow-wrap: anywhere;
+}
+
+/* =========================================
+   15. SAVED DISCOVERIES
+========================================= */
+
+#savedDiscoveries {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.saved-discovery-card {
+  padding: 20px;
+
+  background: rgba(27, 21, 45, 0.82);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+}
+
+.discovery-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+  margin-bottom: 14px;
+
+  color: var(--purple-bright);
+  background: rgba(145, 105, 205, 0.20);
+  border-radius: 13px;
+
+  font-size: 1.35rem;
+}
+
+/* =========================================
+   16. DELETE BUTTONS
+========================================= */
+
+.delete-entry-button {
+  margin-top: 12px;
+  padding: 7px 13px;
+
+  color: #e0c5f4;
+  background: rgba(145, 75, 125, 0.16);
+
+  border: 1px solid rgba(210, 139, 190, 0.25);
+  border-radius: var(--radius-pill);
+
+  font-size: 0.8rem;
+
+  transition: var(--transition);
+}
+
+.delete-entry-button:hover {
+  color: white;
+  background: rgba(165, 75, 125, 0.32);
+}
+
+/* =========================================
+   17. COMMUNITY
+========================================= */
+
+.wall-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.wall-item:last-child {
+  border-bottom: none;
+}
+
+.wall-item p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.avatar {
+  flex: 0 0 40px;
+
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+  background: var(--accent-gradient);
+
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+/* =========================================
+   18. STREAK / PROGRESS
+========================================= */
+
+#completedCount {
+  color: var(--purple-bright);
+  font-size: 2rem;
+  font-weight: 750;
+}
+
+.goal-progress {
+  height: 9px;
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.11);
+  border-radius: var(--radius-pill);
+}
+
+.goal-progress-bar {
+  height: 100%;
+  background: var(--accent-gradient);
+  border-radius: inherit;
+}
+
+/* =========================================
+   19. FEEDBACK / STATUS
+========================================= */
+
+#profileStatus,
+#journalStatus,
+#goalStatus,
+#discoveryStatus,
+#authStatusMessage {
+  display: none;
+  padding: 12px 15px;
+
+  background: rgba(115, 85, 163, 0.19);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+/* =========================================
+   20. MODAL
+========================================= */
+
+dialog,
+.modal-content {
+  color: var(--text-primary);
+  background:
+    radial-gradient(
+      ellipse at 90% 0%,
+      rgba(151, 105, 207, 0.22),
+      transparent 50%
+    ),
+    #211a36;
+
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+}
+
+dialog {
+  width: min(460px, calc(100% - 32px));
+  max-width: 460px;
+  padding: 30px;
+
+  box-shadow: 0 25px 90px rgba(0, 0, 0, 0.45);
+}
+
+dialog::backdrop {
+  background: rgba(3, 2, 9, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+dialog:not([open]) {
+  display: none;
+}
+
+dialog[open] {
+  display: block;
+}
+
+/* =========================================
+   21. FOOTER
+========================================= */
+
+footer {
+  padding: 35px 24px;
+
+  text-align: center;
+
+  background: rgba(12, 9, 21, 0.68);
+  border-top: 1px solid var(--border-color);
+
+  color: var(--text-secondary);
+}
+
+footer p {
+  margin: 5px 0;
+  font-size: 0.88rem;
+}
+
+/* =========================================
+   22. INSTALL BUTTON
+========================================= */
+
+#installButton {
+  margin-top: 15px;
+}
+
+#installButton[hidden] {
+  display: none;
+}
+
+/* =========================================
+   23. ACCESSIBILITY
+========================================= */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--purple-light);
+  outline-offset: 3px;
+}
+
+/* =========================================
+   24. TABLET
+========================================= */
+
+@media (max-width: 900px) {
+
+  .topbar {
+    padding: 14px 25px;
+  }
+
+  .main-nav {
+    gap: 16px;
+  }
+
+  main {
+    width: min(100% - 36px, 760px);
+  }
+
+  .my-space-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card {
+    grid-column: auto;
+  }
+}
+
+/* =========================================
+   25. MOBILE
+========================================= */
+
+@media (max-width: 760px) {
+
+  .topbar {
+    min-height: auto;
+    flex-wrap: wrap;
+    gap: 14px;
+
+    padding: 15px 20px;
+  }
+
+  .brand {
+    font-size: 1.15rem;
+  }
+
+  .main-nav {
+    order: 3;
+    width: 100%;
+
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+
+    overflow-x: auto;
+    padding: 8px 0 3px;
+  }
+
+  .main-nav a {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+  }
+
+  #guest-view,
+  #user-view {
+    margin-left: auto;
+  }
+
+  main {
+    width: calc(100% - 32px);
+    padding-top: 35px;
+  }
+
+  section {
+    margin-bottom: 65px;
+  }
+
+  .hero,
+  .intro-section {
+    padding: 40px 0 25px;
+  }
+
+  .mood-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+  }
+
+  .mood {
+    min-height: 90px;
+    padding: 17px;
+  }
+
+  .activity-card,
+  .streak-card,
+  .prompt-card,
+  .community-card,
+  .profile-card,
+  .my-space-card {
+    padding: 23px;
+    border-radius: 21px;
+  }
+
+  #profileEditor {
+    padding: 17px;
+  }
+
+  #answerList {
+    grid-template-columns: 1fr;
+  }
+
+  #goalCircles,
+  .goal-circles-grid,
+  #savedDiscoveries {
+    grid-template-columns: 1fr;
+  }
+
+  form button[type="submit"] {
+    width: 100%;
+  }
+}
+
+/* =========================================
+   26. SMALL PHONES
+========================================= */
+
+@media (max-width: 480px) {
+
+  .topbar {
+    padding: 13px 16px;
+  }
+
+  .main-nav {
+    gap: 16px;
+  }
+
+  main {
+    width: calc(100% - 28px);
+  }
+
+  h1 {
+    font-size: 2.35rem;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  .intro-copy {
+    font-size: 0.95rem;
+  }
+
+  .mood {
+    min-height: 80px;
+    padding: 14px;
+    font-size: 0.9rem;
+  }
+
+  .activity-card {
+    padding: 22px 18px;
+  }
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+  }
+
+  #nextActivity,
+  #surpriseButton,
+  #saveActivityButton {
+    width: 100%;
+    margin: 8px 0;
+  }
+
+  .wall-item {
+    gap: 11px;
+  }
+}
+
+/* =========================================
+   27. VERY SMALL PHONES
+========================================= */
+
+@media (max-width: 360px) {
+
+  .brand {
+    font-size: 1rem;
+  }
+
+  .main-nav a {
+    font-size: 0.72rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .mood-grid {
+    gap: 12px;
+  }
+
+  .mood {
+    padding: 12px;
+  }
+}
