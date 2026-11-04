@@ -142,7 +142,7 @@
 
     headingCopy.append(
       createElement("p", "eyebrow", "YOUR COMMUNITY"),
-      createElement("h2", "", "What's on your mind?")
+      createElement("h2", "", "Any thoughts?")
     );
 
     composerHeading.append(headingCopy);
