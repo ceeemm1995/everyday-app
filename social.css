@@ -420,12 +420,14 @@
 
 @media (max-width: 420px) {
   .social-compose-footer {
-    align-items: center;
-    gap: 20px;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 20px !important;
   }
 
-  .social-compose-footer .primary-button {
+  .social-compose-footer button {
     width: auto;
+    left: 8px;
   }
 }
 
