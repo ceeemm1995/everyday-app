@@ -1729,3 +1729,12 @@ footer p {
     width: 100%;
   }
 }
+  /* SPACE BETWEEN EMAIL BOX AND MAGIC LINK BUTTON */
+
+#authEmailInput {
+  margin-bottom: 25px !important;
+}
+
+#authEmailInput + .primary-button {
+  margin-top: 15px !important;
+} 
