@@ -90,25 +90,24 @@
 /* COMPOSER FOOTER */
 
 .social-compose-footer {
-  display: flex !important;
+  display: flex;
   align-items: center;
-  justify-content: space-between !important;
+  justify-content: flex-start;
   width: 100%;
-  gap: 24px;
+  gap: 45px;
   margin-top: 12px;
 }
 
 .social-character-count {
   color: #a99fbe;
   font-size: 0.78rem;
-  flex: 0 0 auto;
-  margin-right: auto;
+  flex-shrink: 0;
+  margin: 0;
 }
 
 .social-compose-footer .primary-button {
-  margin-left: auto !important;
-  flex: 0 0 auto;
-  width: auto;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .social-notice {
@@ -420,14 +419,13 @@
 
 @media (max-width: 420px) {
   .social-compose-footer {
-  align-items: flex-start;
-  flex-direction: column;
-  gap: 12px;
-}
+    align-items: center;
+    gap: 20px;
+  }
 
-.social-compose-footer .primary-button {
-  width: 100%;
-  margin-left: 0 !important;
+  .social-compose-footer .primary-button {
+    width: auto;
+  }
 }
 
   .social-character-count {
