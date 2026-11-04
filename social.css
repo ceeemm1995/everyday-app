@@ -90,27 +90,28 @@
 /* COMPOSER FOOTER */
 
 .social-compose-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
   width: 100%;
-  gap: 50px;
   margin-top: 12px;
+  gap: 35px !important;
 }
 
-.social-character-count {
+.social-compose-footer .social-character-count {
+  display: inline-block;
+  flex: 0 0 auto;
+  margin: 0 !important;
   color: #a99fbe;
   font-size: 0.78rem;
-  flex-shrink: 0;
-  margin: 0;
 }
 
-.social-compose-footer .primary-button {
-  margin: 0;
-  flex-shrink: 0;
+.social-compose-footer button {
+  flex: 0 0 auto;
+  margin: 0 !important;
+  position: relative;
+  left: 12px;
 }
-
-.social-notice {
   margin: 15px 0 0;
   padding: 11px 14px;
   color: #c8bce8;
