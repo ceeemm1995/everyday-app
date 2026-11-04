@@ -25,6 +25,7 @@
     SUPABASE_URL,
     SUPABASE_ANON_KEY
   );
+  window.everydaySupabase = supabase;
 
   // =====================================
   // HELPERS
