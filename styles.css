@@ -1,553 +1,234 @@
 
 /* =================================
-   EVERYDAY — MOBILE RESPONSIVENESS
-   v0.2 — INDIGO / PURPLE THEME
+   EVERYDAY — ORIGINAL DARK PURPLE
+   BLACK → INDIGO → PURPLE
 ================================= */
 
-/* Tablets and smaller screens */
-@media (max-width: 760px) {
-  html,
-  body {
-    width: 100%;
-    overflow-x: hidden;
-  }
+:root {
+  --bg-main: #080611;
+  --bg-secondary: #100b20;
+  --bg-card: rgba(23, 15, 43, 0.82);
+  --bg-card-hover: rgba(37, 23, 66, 0.92);
 
-  .topbar {
-    height: 64px;
-    padding: 0 18px;
-  }
+  --purple-dark: #241044;
+  --purple: #7137c8;
+  --purple-light: #a879f5;
+  --indigo: #31205f;
 
-  .brand {
-    font-size: 20px;
-  }
+  --text-primary: #f7f2ff;
+  --text-secondary: #b9aecb;
+  --text-muted: #81748f;
 
-  .top-actions {
-    gap: 7px;
-  }
+  --border-color: rgba(173, 130, 235, 0.18);
+  --border-hover: rgba(173, 130, 235, 0.4);
 
-  .local-pill {
-    padding: 6px 9px;
-    font-size: 10px;
-  }
+  --accent-gradient: linear-gradient(
+    135deg,
+    #241044 0%,
+    #493080 48%,
+    #8650d9 100%
+  );
 
-  .shell {
-    width: 100%;
-    padding: 35px 18px 25px;
-  }
-
-  .intro {
-    max-width: 100%;
-    margin-bottom: 38px;
-  }
-
-  .intro h1 {
-    font-size: clamp(38px, 8vw, 58px);
-    letter-spacing: -2.5px;
-    line-height: 1.05;
-    overflow-wrap: break-word;
-  }
-
-  .intro-copy {
-    font-size: 15px;
-    line-height: 1.6;
-  }
-
-  .section-heading {
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .section-heading h2 {
-    font-size: 21px;
-  }
-
-  .mood-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 9px;
-  }
-
-  .mood {
-    min-height: 88px;
-    padding: 13px 10px;
-  }
-
-  .feature-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-    margin: 20px 0 45px;
-  }
-
-  .side-stack {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .activity-card,
-  .streak-card,
-  .prompt-card,
-  .community-card {
-    min-width: 0;
-    padding: 19px;
-  }
-
-  .activity-card h2 {
-    font-size: 24px;
-  }
-
-  .community-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-  }
-
-  .principles {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  /* =================================
-     MY SPACE — v0.2
-  ================================= */
-
-  .my-space,
-  .my-space-grid {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .my-space-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-  }
-
-  .profile-card,
-  .my-space-card,
-  .journal-card,
-  .goal-card,
-  .saved-activities-card {
-    min-width: 0;
-    padding: 19px;
-    border-radius: 18px;
-  }
-
-  .profile-header {
-    flex-wrap: wrap;
-    gap: 14px;
-  }
-
-  .profile-details {
-    min-width: 0;
-  }
-
-  .profile-details h2 {
-    overflow-wrap: anywhere;
-  }
-
-  .profile-avatar {
-    width: 58px;
-    height: 58px;
-    flex-shrink: 0;
-  }
-
-  .profile-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-
-  .journal-list,
-  .goal-list {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
-  }
-
-  .journal-entry,
-  .goal-item {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
-  .journal-actions,
-  .goal-actions {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .privacy-toggle {
-    max-width: 100%;
-  }
-
-  /* =================================
-     GOAL CIRCLES — v0.2
-  ================================= */
-
-  .goal-circles-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 13px;
-  }
-
-  .goal-circle-card {
-    min-width: 0;
-    padding: 18px;
-  }
-
-  .goal-circle-members {
-    flex-wrap: wrap;
-    gap: 7px;
-  }
-
-  .goal-progress {
-    width: 100%;
-  }
-
-  /* =================================
-     THREADED CONVERSATIONS — v0.2
-  ================================= */
-
-  .conversation-card {
-    min-width: 0;
-    padding: 17px;
-  }
-
-  .conversation-reply {
-    margin-left: 14px;
-    padding-left: 12px;
-  }
-
-  .conversation-actions {
-    flex-wrap: wrap;
-    gap: 9px;
-  }
-
-  .conversation-form {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .conversation-form button {
-    width: 100%;
-  }
-
-  footer {
-    padding: 20px 18px;
-    gap: 10px;
-  }
+  --page-gradient: linear-gradient(
+    135deg,
+    #05040b 0%,
+    #0c0920 38%,
+    #17102f 72%,
+    #251044 100%
+  );
 }
 
-/* =================================
-   MOBILE PHONES
-================================= */
-
-@media (max-width: 480px) {
-  .topbar {
-    padding: 0 14px;
-    height: 60px;
-  }
-
-  .brand {
-    font-size: 19px;
-  }
-
-  .top-actions {
-    gap: 6px;
-  }
-
-  .local-pill {
-    font-size: 9px;
-    padding: 6px 8px;
-  }
-
-  .shell {
-    padding: 30px 15px 22px;
-  }
-
-  .intro {
-    margin-bottom: 34px;
-  }
-
-  .eyebrow {
-    font-size: 10px;
-    letter-spacing: 1.3px;
-  }
-
-  .intro h1 {
-    font-size: clamp(36px, 10vw, 48px);
-    letter-spacing: -2px;
-    line-height: 1.04;
-  }
-
-  .intro-copy {
-    font-size: 14px;
-    margin-top: 15px;
-  }
-
-  .section-heading {
-    align-items: flex-start;
-  }
-
-  .section-heading h2 {
-    font-size: 20px;
-    line-height: 1.25;
-  }
-
-  .text-button {
-    font-size: 12px;
-    white-space: nowrap;
-  }
-
-  .mood-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 9px;
-  }
-
-  .mood {
-    min-height: 82px;
-    padding: 12px;
-    font-size: 12px;
-  }
-
-  .mood span {
-    font-size: 20px;
-    margin-bottom: 5px;
-  }
-
-  .feature-grid {
-    margin-top: 18px;
-    gap: 13px;
-  }
-
-  .side-stack {
-    grid-template-columns: 1fr;
-  }
-
-  .activity-card,
-  .streak-card,
-  .prompt-card,
-  .community-card {
-    padding: 17px;
-    border-radius: 17px;
-  }
-
-  .activity-symbol {
-    width: 54px;
-    height: 54px;
-    font-size: 26px;
-    margin: 22px 0 14px;
-  }
-
-  .activity-card h2 {
-    font-size: 23px;
-  }
-
-  .question-area {
-    padding: 14px;
-  }
-
-  .answer-list {
-    grid-template-columns: 1fr 1fr;
-    gap: 7px;
-  }
-
-  .answer {
-    padding: 10px;
-    font-size: 12px;
-  }
-
-  .card-footer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .primary-button {
-    width: 100%;
-    padding: 12px;
-  }
-
-  .community-card form {
-    flex-direction: column;
-  }
-
-  .community-card form button {
-    width: 100%;
-  }
-
-  .community-card input {
-    width: 100%;
-    min-height: 44px;
-  }
-
-  /* MY SPACE */
-
-  .profile-card,
-  .my-space-card,
-  .journal-card,
-  .goal-card,
-  .saved-activities-card {
-    padding: 16px;
-    border-radius: 17px;
-  }
-
-  .profile-avatar {
-    width: 52px;
-    height: 52px;
-  }
-
-  .profile-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .journal-entry,
-  .goal-item {
-    padding: 13px;
-  }
-
-  .journal-actions,
-  .goal-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .journal-actions button,
-  .goal-actions button {
-    width: 100%;
-  }
-
-  /* GOAL CIRCLES */
-
-  .goal-circle-card {
-    padding: 16px;
-    border-radius: 17px;
-  }
-
-  .goal-circle-members {
-    gap: 6px;
-  }
-
-  /* CONVERSATIONS */
-
-  .conversation-card {
-    padding: 15px;
-    border-radius: 16px;
-  }
-
-  .conversation-reply {
-    margin-left: 10px;
-    padding-left: 10px;
-  }
-
-  .conversation-form {
-    flex-direction: column;
-  }
-
-  .conversation-form textarea {
-    width: 100%;
-  }
-
-  .conversation-form button {
-    width: 100%;
-  }
-
-  .principles {
-    padding: 23px 0;
-  }
-
-  footer {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 18px 15px;
-  }
-
-  footer p {
-    text-align: left;
-    max-width: 100%;
-  }
-
-  footer p span {
-    display: block;
-    margin: 4px 0 0;
-  }
+/* Main background */
+html,
+body {
+  background: #080611;
+  color: var(--text-primary);
 }
 
-/* =================================
-   VERY SMALL PHONES
-================================= */
+body {
+  background:
+    radial-gradient(
+      ellipse at 85% 10%,
+      rgba(105, 55, 175, 0.20),
+      transparent 42%
+    ),
+    radial-gradient(
+      ellipse at 10% 45%,
+      rgba(48, 37, 105, 0.19),
+      transparent 45%
+    ),
+    linear-gradient(
+      135deg,
+      #05040b 0%,
+      #0c0920 42%,
+      #17102f 75%,
+      #251044 100%
+    );
 
-@media (max-width: 360px) {
-  .topbar {
-    padding: 0 10px;
-  }
-
-  .brand {
-    font-size: 17px;
-  }
-
-  .top-actions {
-    gap: 4px;
-  }
-
-  .local-pill {
-    padding: 5px 6px;
-    font-size: 8px;
-  }
-
-  .shell {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .intro h1 {
-    font-size: 35px;
-  }
-
-  .mood {
-    padding: 10px;
-  }
-
-  .answer-list {
-    grid-template-columns: 1fr;
-  }
-
-  .profile-card,
-  .my-space-card,
-  .journal-card,
-  .goal-card,
-  .saved-activities-card,
-  .goal-circle-card,
-  .conversation-card {
-    padding: 13px;
-  }
-
-  .conversation-reply {
-    margin-left: 7px;
-    padding-left: 8px;
-  }
+  background-attachment: fixed;
 }
 
-/* =================================
-   PREVENT CONTENT OVERFLOW
-================================= */
-
-img,
-video,
-iframe {
-  max-width: 100%;
+/* Header */
+.topbar {
+  background: rgba(8, 6, 17, 0.82);
+  border-bottom: 1px solid var(--border-color);
+  backdrop-filter: blur(18px);
 }
 
-input,
-button,
-textarea {
-  max-width: 100%;
+.brand {
+  color: #f7f2ff;
 }
 
+/* Cards */
 .activity-card,
-.community-card,
 .streak-card,
 .prompt-card,
+.community-card,
+.profile-card,
 .my-space-card,
 .journal-card,
 .goal-card,
+.saved-activities-card,
 .goal-circle-card,
 .conversation-card {
-  overflow-wrap: break-word;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  backdrop-filter: blur(16px);
+}
+
+.activity-card:hover,
+.streak-card:hover,
+.prompt-card:hover,
+.community-card:hover,
+.profile-card:hover,
+.my-space-card:hover,
+.journal-card:hover,
+.goal-card:hover,
+.saved-activities-card:hover,
+.goal-circle-card:hover,
+.conversation-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+}
+
+/* Headings and text */
+h1,
+h2,
+h3,
+h4 {
+  color: var(--text-primary);
+}
+
+p,
+.intro-copy {
+  color: var(--text-secondary);
+}
+
+.eyebrow,
+.text-button {
+  color: var(--purple-light);
+}
+
+/* Mood cards */
+.mood {
+  background: rgba(27, 19, 49, 0.78);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.mood:hover,
+.mood.active,
+.mood.selected {
+  background: linear-gradient(
+    135deg,
+    rgba(76, 45, 130, 0.85),
+    rgba(119, 69, 190, 0.75)
+  );
+  border-color: var(--purple-light);
+}
+
+/* Buttons */
+.primary-button,
+button.primary-button {
+  background: var(--accent-gradient);
+  color: #ffffff;
+  border: 1px solid rgba(190, 150, 255, 0.28);
+}
+
+.primary-button:hover,
+button.primary-button:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 22px rgba(133, 80, 217, 0.28);
+}
+
+/* Inputs and text areas */
+input,
+textarea,
+select {
+  background: rgba(12, 9, 29, 0.9);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--purple-light);
+  box-shadow: 0 0 0 3px rgba(135, 85, 210, 0.15);
+}
+
+/* Journal privacy and sharing */
+.privacy-toggle,
+.journal-entry,
+.goal-item {
+  background: rgba(20, 13, 38, 0.85);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+/* Goal progress */
+.goal-progress {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.goal-progress-bar {
+  background: var(--accent-gradient);
+}
+
+/* Threaded conversations */
+.conversation-reply {
+  border-left: 2px solid rgba(153, 105, 225, 0.55);
+}
+
+/* Footer */
+footer {
+  background: rgba(5, 4, 11, 0.55);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+/* Modal */
+dialog,
+.modal-content {
+  background: #120d24;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+dialog::backdrop {
+  background: rgba(3, 2, 9, 0.78);
+  backdrop-filter: blur(6px);
+}
+
+/* Selection */
+::selection {
+  background: rgba(132, 82, 210, 0.5);
+  color: #ffffff;
 }
