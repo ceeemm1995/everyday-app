@@ -1990,6 +1990,87 @@
   }
 
   // =====================================
+  // PAGE NAVIGATION
+  // =====================================
+
+  const pageLinks = document.querySelectorAll("[data-page-link]");
+  const pageViews = document.querySelectorAll("[data-page]");
+
+  function showPage(pageName, updateAddress = true) {
+    const availablePages = ["discover", "explore", "community", "my-space"];
+
+    if (!availablePages.includes(pageName)) {
+      pageName = "discover";
+    }
+
+    // Show only the selected page.
+    pageViews.forEach(page => {
+      const isSelected = page.dataset.page === pageName;
+
+      page.classList.toggle("is-active", isSelected);
+      page.hidden = !isSelected;
+    });
+
+    // Update the navigation appearance.
+    pageLinks.forEach(link => {
+      const isSelected = link.dataset.pageLink === pageName;
+
+      if (isSelected) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+
+    // Keep the selected page reflected in the URL.
+    if (updateAddress) {
+      const newHash = "#" + pageName;
+
+      if (window.location.hash !== newHash) {
+        history.pushState({ page: pageName }, "", newHash);
+      }
+    }
+
+    // Keep the page at the top after changing tabs.
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
+
+  // Navigation clicks.
+  pageLinks.forEach(link => {
+    link.addEventListener("click", event => {
+      event.preventDefault();
+
+      showPage(link.dataset.pageLink);
+    });
+  });
+
+  // Browser back and forward buttons.
+  window.addEventListener("popstate", () => {
+    const pageName = window.location.hash.replace("#", "");
+
+    showPage(pageName || "discover", false);
+  });
+
+  // Direct links and initial page loading.
+  const initialPage = window.location.hash.replace("#", "");
+
+  showPage(initialPage || "discover", false);
+
+  // Keep the secondary activity counter synchronized.
+  function updateExploreCompletedCount() {
+    const counter = $("exploreCompletedCount");
+
+    if (counter) {
+      counter.textContent = completed;
+    }
+  }
+
+  updateExploreCompletedCount();
+
+  // =====================================
   // INITIALIZE APP
   // =====================================
 
