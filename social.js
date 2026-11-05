@@ -1,8 +1,10 @@
+
 (() => {
   "use strict";
 
   // =========================================
   // EVERYDAY — SOCIAL COMMUNITY
+  // PROFILE PHOTOS + POST MEDIA
   // =========================================
 
   const supabase = window.everydaySupabase;
@@ -14,15 +16,49 @@
     return;
   }
 
+  // =========================================
+  // CONFIGURATION
+  // =========================================
+
   const LOCAL_KEY = "everyday_local_social_posts";
   const MAX_POST_LENGTH = 1000;
-  const MAX_FEED_POSTS = 500;
+
+  const AVATAR_BUCKET = "everyday-avatars";
+  const MEDIA_BUCKET = "everyday-community-media";
+
+  const AVATAR_MAX_SIZE = 5 * 1024 * 1024;
+  const MEDIA_MAX_SIZE = 50 * 1024 * 1024;
+
+  const SIGNED_URL_SECONDS = 60 * 60;
+
+  const AVATAR_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif"
+  ];
+
+  const MEDIA_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "video/mp4",
+    "video/webm",
+    "video/quicktime"
+  ];
+
+  // =========================================
+  // STATE
+  // =========================================
 
   let currentUser = null;
   let currentProfile = null;
+
   let feedPosts = [];
   let followRelationships = [];
   let incomingRequests = [];
+
   let searchTimer = null;
   let searchRequestNumber = 0;
 
@@ -30,7 +66,9 @@
   // HELPERS
   // =========================================
 
-  const byId = (id) => document.getElementById(id);
+  function byId(id) {
+    return document.getElementById(id);
+  }
 
   function createElement(tag, className, text) {
     const element = document.createElement(tag);
@@ -44,34 +82,6 @@
     }
 
     return element;
-  }
-
-  function getLocalPosts() {
-    try {
-      const stored = JSON.parse(
-        localStorage.getItem(LOCAL_KEY) || "[]"
-      );
-
-      if (!Array.isArray(stored)) return [];
-
-      return stored.map((post) => ({
-        ...post,
-        local: true
-      }));
-    } catch (error) {
-      console.error("EVERYDAY local posts:", error);
-      return [];
-    }
-  }
-
-  function saveLocalPosts(posts) {
-    try {
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(posts));
-      return true;
-    } catch (error) {
-      console.error("EVERYDAY could not save local posts:", error);
-      return false;
-    }
   }
 
   function formatDate(value) {
@@ -92,67 +102,301 @@
     });
   }
 
-  function setStatus(element, message, isError = false) {
-    if (!element) return;
+  function setStatus(message, isError = false) {
+    const status = byId("socialStatus");
 
-    element.textContent = message;
-    element.classList.toggle("is-error", isError);
+    if (!status) return;
+
+    status.textContent = message || "";
+    status.classList.toggle("is-error", isError);
   }
 
-  function getNickname() {
+  function setButtonLoading(button, loading, loadingText = "Please wait...") {
+    if (!button) return;
+
+    if (loading) {
+      button.dataset.originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = loadingText;
+    } else {
+      button.disabled = false;
+
+      if (button.dataset.originalText) {
+        button.textContent = button.dataset.originalText;
+        delete button.dataset.originalText;
+      }
+    }
+  }
+
+  function getNickname(profile, fallback = "Everyday member") {
     return (
-      currentProfile?.nickname ||
-      currentUser?.user_metadata?.nickname ||
-      "Everyday member"
+      profile?.nickname ||
+      profile?.author ||
+      fallback
     );
   }
 
+  function getInitial(name) {
+    return String(name || "?").trim().charAt(0).toUpperCase() || "?";
+  }
+
+  function getLocalPosts() {
+    try {
+      const saved = localStorage.getItem(LOCAL_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error("Could not read local social posts:", error);
+      return [];
+    }
+  }
+
+  function saveLocalPosts(posts) {
+    try {
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(posts));
+    } catch (error) {
+      console.error("Could not save local social posts:", error);
+    }
+  }
+
   function escapeSearchTerm(value) {
-    return value.replace(/[%,_]/g, "").trim();
+    return String(value || "").replace(/[,%()]/g, "");
   }
 
   function getFollowRelationship(userId) {
     return followRelationships.find(
       (relationship) =>
-        relationship.following_id === userId
+        relationship.following_id === userId ||
+        relationship.follower_id === userId
     );
   }
 
-  function getFollowButtonLabel(relationship) {
+  function getFollowButtonLabel(userId, isPrivate) {
+    const relationship = getFollowRelationship(userId);
+
     if (!relationship) return "Follow";
 
-    return relationship.status === "pending"
-      ? "Cancel request"
-      : "Unfollow";
+    if (relationship.follower_id === currentUser?.id) {
+      return relationship.status === "pending"
+        ? "Requested"
+        : "Following";
+    }
+
+    return isPrivate ? "Private profile" : "Follow";
   }
 
   function mergePosts(serverPosts, localPosts) {
-    const merged = new Map();
+    const combined = [...serverPosts];
 
-    (serverPosts || []).forEach((post) => {
-      merged.set(post.id, {
-        ...post,
-        local: false
-      });
-    });
+    localPosts.forEach((localPost) => {
+      const alreadyExists = combined.some(
+        (post) => post.id === localPost.id
+      );
 
-    (localPosts || []).forEach((post) => {
-      if (!merged.has(post.id)) {
-        merged.set(post.id, {
-          ...post,
-          local: true
-        });
+      if (!alreadyExists) {
+        combined.push(localPost);
       }
     });
 
-    return Array.from(merged.values()).sort(
+    return combined.sort(
       (a, b) =>
-        new Date(b.created_at) - new Date(a.created_at)
+        new Date(b.created_at || 0) -
+        new Date(a.created_at || 0)
+    );
+  }
+
+  function makeSafeFileName(file) {
+    const extension = file.name.split(".").pop() || "file";
+
+    return (
+      Date.now() +
+      "-" +
+      Math.random().toString(36).slice(2, 10) +
+      "." +
+      extension.toLowerCase()
+    );
+  }
+
+  function isVideoType(type) {
+    return String(type || "").startsWith("video/");
+  }
+
+  // =========================================
+  // STORAGE HELPERS
+  // =========================================
+
+  async function createSignedMediaUrl(bucket, path) {
+    if (!path) return null;
+
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(path, SIGNED_URL_SECONDS);
+
+    if (error) {
+      console.error("Could not create signed media URL:", error);
+      return null;
+    }
+
+    return data?.signedUrl || null;
+  }
+
+  async function uploadAvatar(file) {
+    if (!currentUser) {
+      throw new Error("Please sign in before uploading a profile picture.");
+    }
+
+    if (!AVATAR_TYPES.includes(file.type)) {
+      throw new Error("Please choose a JPG, PNG, WEBP, or GIF image.");
+    }
+
+    if (file.size > AVATAR_MAX_SIZE) {
+      throw new Error("Your profile picture must be 5 MB or smaller.");
+    }
+
+    const path =
+      currentUser.id + "/" + makeSafeFileName(file);
+
+    const { error: uploadError } = await supabase.storage
+      .from(AVATAR_BUCKET)
+      .upload(path, file, {
+        contentType: file.type,
+        upsert: false
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { error: profileError } = await supabase
+      .from("user_profiles")
+      .upsert(
+        {
+          id: currentUser.id,
+          avatar_path: path,
+          updated_at: new Date().toISOString()
+        },
+        {
+          onConflict: "id"
+        }
+      );
+
+    if (profileError) {
+      await supabase.storage
+        .from(AVATAR_BUCKET)
+        .remove([path]);
+
+      throw profileError;
+    }
+
+    if (currentProfile?.avatar_path) {
+      await supabase.storage
+        .from(AVATAR_BUCKET)
+        .remove([currentProfile.avatar_path]);
+    }
+
+    currentProfile = {
+      ...currentProfile,
+      id: currentUser.id,
+      avatar_path: path
+    };
+
+    await renderProfileAvatar();
+    return path;
+  }
+
+  async function uploadPostMedia(file, postId) {
+    if (!currentUser) {
+      throw new Error("Please sign in to upload photos or videos.");
+    }
+
+    if (!MEDIA_TYPES.includes(file.type)) {
+      throw new Error(
+        "Choose a JPG, PNG, WEBP, GIF, MP4, WEBM, or MOV file."
+      );
+    }
+
+    if (file.size > MEDIA_MAX_SIZE) {
+      throw new Error("Your attachment must be 50 MB or smaller.");
+    }
+
+    const path =
+      currentUser.id +
+      "/" +
+      postId +
+      "/" +
+      makeSafeFileName(file);
+
+    const { error } = await supabase.storage
+      .from(MEDIA_BUCKET)
+      .upload(path, file, {
+        contentType: file.type,
+        upsert: false
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      path,
+      type: file.type
+    };
+  }
+
+  // =========================================
+  // AVATAR RENDERING
+  // =========================================
+
+  function createAvatarElement(name, className = "social-post-avatar") {
+    const avatar = createElement("div", className, getInitial(name));
+    avatar.setAttribute("aria-label", name + " profile picture");
+    return avatar;
+  }
+
+  async function applyAvatar(element, path, name, bucket = AVATAR_BUCKET) {
+    if (!element) return;
+
+    element.textContent = getInitial(name);
+
+    if (!path) return;
+
+    const url = await createSignedMediaUrl(bucket, path);
+
+    if (!url) return;
+
+    const image = document.createElement("img");
+
+    image.src = url;
+    image.alt = name + " profile picture";
+    image.loading = "lazy";
+
+    image.addEventListener("error", () => {
+      image.remove();
+      element.textContent = getInitial(name);
+    });
+
+    element.replaceChildren(image);
+  }
+
+  async function renderProfileAvatar() {
+    const profileEditor = byId("profileEditor");
+
+    if (!profileEditor || !currentProfile) return;
+
+    const avatar = profileEditor.querySelector(
+      ".everyday-profile-avatar"
+    );
+
+    if (!avatar) return;
+
+    await applyAvatar(
+      avatar,
+      currentProfile.avatar_path,
+      getNickname(currentProfile, "You")
     );
   }
 
   // =========================================
-  // BUILD THE COMMUNITY INTERFACE
+  // COMMUNITY INTERFACE
   // =========================================
 
   function buildCommunityInterface() {
@@ -160,107 +404,136 @@
       '[data-page="community"]'
     );
 
-    if (!communityPage || byId("everydaySocial")) {
-      return;
+    if (!communityPage) return;
+
+    const oldCommunity = byId("community");
+
+    if (oldCommunity) {
+      oldCommunity.style.display = "none";
     }
 
-    const oldCommunityPost = byId("community");
+    let root = byId("everydaySocial");
 
-    if (oldCommunityPost) {
-      oldCommunityPost.hidden = true;
+    if (!root) {
+      root = createElement("div", "everyday-social");
+      root.id = "everydaySocial";
+      communityPage.appendChild(root);
     }
 
-    const root = createElement("section", "everyday-social");
-    root.id = "everydaySocial";
+    root.innerHTML = "";
 
-    const composer = createElement(
-      "article",
-      "social-card social-composer"
+    // Composer
+
+    const composerCard = createElement("section", "social-card");
+    const heading = createElement("div", "social-section-heading");
+
+    const headingText = createElement("div");
+    headingText.appendChild(
+      createElement("p", "eyebrow", "COMMUNITY")
     );
-
-    const composerHeading = createElement(
-      "div",
-      "social-section-heading"
-    );
-
-    const headingCopy = createElement("div");
-
-    headingCopy.append(
-      createElement("p", "eyebrow", "YOUR COMMUNITY"),
+    headingText.appendChild(
       createElement("h2", "", "Any thoughts?")
     );
 
-    composerHeading.append(headingCopy);
+    heading.appendChild(headingText);
+    composerCard.appendChild(heading);
 
-    const composerDescription = createElement(
-      "p",
-      "muted",
-      "Share a thought, a question, a small discovery, or something worth discussing."
+    composerCard.appendChild(
+      createElement(
+        "p",
+        "muted",
+        "Share an idea, an observation, or something worth discussing."
+      )
     );
 
     const form = createElement("form", "social-compose-form");
     form.id = "socialComposeForm";
 
     const textarea = document.createElement("textarea");
-    textarea.id = "socialComposeInput";
-    textarea.name = "thought";
+    textarea.id = "socialPostInput";
     textarea.maxLength = MAX_POST_LENGTH;
-    textarea.rows = 4;
     textarea.placeholder = "Write something worth sharing...";
     textarea.required = true;
+    textarea.setAttribute("aria-label", "Write a community post");
 
-    const formFooter = createElement(
+    form.appendChild(textarea);
+
+    // Media attachment
+
+    const attachmentArea = createElement(
       "div",
-      "social-compose-footer"
+      "social-attachment-area"
     );
+
+    const attachmentLabel = createElement(
+      "label",
+      "social-attachment-button",
+      "＋ Add photo or video"
+    );
+
+    attachmentLabel.htmlFor = "socialMediaInput";
+
+    const mediaInput = document.createElement("input");
+    mediaInput.type = "file";
+    mediaInput.id = "socialMediaInput";
+    mediaInput.accept =
+      "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime";
+    mediaInput.hidden = true;
+
+    const mediaPreview = createElement(
+      "div",
+      "social-media-preview"
+    );
+    mediaPreview.id = "socialMediaPreview";
+
+    attachmentArea.appendChild(attachmentLabel);
+    attachmentArea.appendChild(mediaInput);
+    attachmentArea.appendChild(mediaPreview);
+
+    form.appendChild(attachmentArea);
+
+    // Footer
+
+    const footer = createElement("div", "social-compose-footer");
 
     const characterCount = createElement(
       "span",
       "social-character-count",
-      `0 / ${MAX_POST_LENGTH}`
+      "0/1000"
     );
 
     characterCount.id = "socialCharacterCount";
 
-    // Preserve the character counter spacing.
-    characterCount.style.marginRight = "30px";
-    characterCount.style.flexShrink = "0";
-
-    const submitButton = createElement(
+    const submit = createElement(
       "button",
       "primary-button",
       "Save thought"
     );
 
-    submitButton.type = "submit";
-    submitButton.style.marginLeft = "0";
-    submitButton.style.flexShrink = "0";
+    submit.type = "submit";
 
-    formFooter.style.display = "flex";
-    formFooter.style.alignItems = "center";
-    formFooter.style.justifyContent = "flex-start";
-    formFooter.style.gap = "0";
+    footer.appendChild(characterCount);
+    footer.appendChild(submit);
 
-    formFooter.append(characterCount, submitButton);
-    form.append(textarea, formFooter);
+    form.appendChild(footer);
 
-    const signInNotice = createElement(
+    composerCard.appendChild(form);
+
+    const notice = createElement(
       "p",
       "social-notice",
-      "You're in Guest Mode. Your thoughts will be saved on this device. Sign in to join conversations with other members."
+      "Your public nickname is shown with your posts. Your email address is not displayed."
     );
 
-    signInNotice.id = "socialGuestNotice";
+    notice.id = "socialGuestNotice";
 
-    composer.append(
-      composerHeading,
-      composerDescription,
-      form,
-      signInNotice
-    );
+    composerCard.appendChild(notice);
+    root.appendChild(composerCard);
+
+    // Feed
 
     const feedCard = createElement(
-      "article",
+      "section",
       "social-card social-feed-card"
     );
 
@@ -269,11 +542,8 @@
       "social-section-heading"
     );
 
-    const feedHeadingCopy = createElement("div");
-
-    feedHeadingCopy.append(
-      createElement("p", "eyebrow", "OPEN CONVERSATIONS"),
-      createElement("h2", "", "From the community")
+    feedHeading.appendChild(
+      createElement("h2", "", "Community")
     );
 
     const refreshButton = createElement(
@@ -285,197 +555,89 @@
     refreshButton.type = "button";
     refreshButton.id = "socialRefreshButton";
 
-    feedHeading.append(feedHeadingCopy, refreshButton);
+    feedHeading.appendChild(refreshButton);
+    feedCard.appendChild(feedHeading);
 
-    const feedStatus = createElement(
-      "p",
-      "social-status",
-      "Loading community thoughts..."
-    );
-
-    feedStatus.id = "socialFeedStatus";
-    feedStatus.setAttribute("aria-live", "polite");
+    const status = createElement("p", "social-status");
+    status.id = "socialStatus";
 
     const feed = createElement("div", "social-feed");
     feed.id = "socialFeed";
 
-    feedCard.append(feedHeading, feedStatus, feed);
+    feedCard.appendChild(status);
+    feedCard.appendChild(feed);
 
-    root.append(composer, feedCard);
+    root.appendChild(feedCard);
 
-    const layout = communityPage.querySelector(
-      ".community-page-layout"
+    // Member discovery
+
+    const memberSection = createElement(
+      "section",
+      "social-member-section"
     );
 
-    if (layout) {
-      layout.before(root);
-    } else {
-      communityPage.append(root);
-    }
-
-    textarea.addEventListener("input", () => {
-      characterCount.textContent =
-        `${textarea.value.length} / ${MAX_POST_LENGTH}`;
-    });
-
-    form.addEventListener("submit", handleNewPost);
-    refreshButton.addEventListener("click", loadFeed);
-
-    if (oldCommunityPost) {
-      oldCommunityPost.hidden = true;
-    }
-  }
-
-  // =========================================
-  // BUILD MY SPACE SOCIAL SETTINGS
-  // =========================================
-
-  function buildProfileSocialInterface() {
-    const profileEditor = byId("profileEditor");
-
-    if (!profileEditor || byId("everydayPrivacySettings")) {
-      return;
-    }
-
-    const settings = createElement(
-      "div",
-      "social-privacy-settings"
+    memberSection.appendChild(
+      createElement("h2", "", "Find people")
     );
 
-    settings.id = "everydayPrivacySettings";
-
-    settings.append(
-      createElement("p", "eyebrow", "PROFILE VISIBILITY"),
-      createElement("h3", "", "Choose who can follow you."),
+    memberSection.appendChild(
       createElement(
         "p",
         "muted",
-        "Public profiles can be followed immediately. Private profiles require your approval."
+        "Discover members by their public nickname."
       )
     );
 
-    const label = document.createElement("label");
-    label.htmlFor = "socialProfilePrivacy";
-    label.textContent = "Profile privacy";
-
-    const select = document.createElement("select");
-    select.id = "socialProfilePrivacy";
-    select.name = "socialProfilePrivacy";
-
-    const publicOption = document.createElement("option");
-    publicOption.value = "public";
-    publicOption.textContent = "Public — anyone can follow";
-
-    const privateOption = document.createElement("option");
-    privateOption.value = "private";
-    privateOption.textContent = "Private — approve follow requests";
-
-    select.append(publicOption, privateOption);
-
-    const saveButton = createElement(
-      "button",
-      "secondary-button",
-      "Save privacy"
-    );
-
-    saveButton.type = "button";
-    saveButton.id = "saveSocialPrivacy";
-
-    const status = createElement("p", "feedback");
-    status.id = "socialPrivacyStatus";
-    status.setAttribute("aria-live", "polite");
-
-    settings.append(label, select, saveButton, status);
-    profileEditor.append(settings);
-
-    saveButton.addEventListener("click", saveProfilePrivacy);
-
-    buildMemberDiscovery();
-  }
-
-  function buildMemberDiscovery() {
-    const mySpace = document.querySelector(
-      '[data-page="my-space"]'
-    );
-
-    if (!mySpace || byId("everydayMemberDiscovery")) {
-      return;
-    }
-
-    const section = createElement(
-      "section",
-      "my-space-card social-member-section"
-    );
-
-    section.id = "everydayMemberDiscovery";
-
-    const heading = createElement(
-      "div",
-      "social-section-heading"
-    );
-
-    const headingCopy = createElement("div");
-
-    headingCopy.append(
-      createElement("p", "eyebrow", "FIND YOUR PEOPLE"),
-      createElement("h2", "", "Discover members")
-    );
-
-    heading.append(headingCopy);
-
-    const description = createElement(
-      "p",
-      "muted",
-      "Search for people by their nickname. You can follow public profiles or request to follow private profiles."
-    );
-
     const search = document.createElement("input");
-    search.type = "search";
     search.id = "socialMemberSearch";
-    search.placeholder = "Search by nickname...";
-    search.maxLength = 30;
+    search.type = "search";
+    search.placeholder = "Search nicknames...";
     search.autocomplete = "off";
 
-    const searchResults = createElement(
+    memberSection.appendChild(search);
+
+    const memberResults = createElement(
       "div",
       "social-member-results"
     );
 
-    searchResults.id = "socialMemberResults";
+    memberResults.id = "socialMemberResults";
+
+    memberSection.appendChild(memberResults);
 
     const requestHeading = createElement(
       "div",
       "social-request-heading"
     );
 
-    requestHeading.append(
-      createElement("p", "eyebrow", "YOUR COMMUNITY"),
+    requestHeading.appendChild(
       createElement("h3", "", "Follow requests")
     );
 
-    const requests = createElement(
+    memberSection.appendChild(requestHeading);
+
+    const requestList = createElement(
       "div",
       "social-request-list"
     );
 
-    requests.id = "socialIncomingRequests";
+    requestList.id = "socialRequestList";
 
-    section.append(
-      heading,
-      description,
-      search,
-      searchResults,
-      requestHeading,
-      requests
-    );
+    memberSection.appendChild(requestList);
+    root.appendChild(memberSection);
 
-    const grid = mySpace.querySelector(".my-space-grid");
+    // Events
 
-    if (grid) {
-      grid.before(section);
-    } else {
-      mySpace.append(section);
-    }
+    textarea.addEventListener("input", () => {
+      characterCount.textContent =
+        textarea.value.length + "/" + MAX_POST_LENGTH;
+    });
+
+    mediaInput.addEventListener("change", previewSelectedMedia);
+
+    form.addEventListener("submit", handleNewPost);
+
+    refreshButton.addEventListener("click", loadFeed);
 
     search.addEventListener("input", () => {
       clearTimeout(searchTimer);
@@ -484,360 +646,308 @@
         searchMembers(search.value);
       }, 350);
     });
+
+    mediaPreview.addEventListener("click", (event) => {
+      if (event.target.closest("[data-remove-media]")) {
+        mediaInput.value = "";
+        mediaPreview.replaceChildren();
+      }
+    });
+
+    feed.addEventListener("click", handleFeedClick);
+
+    feed.addEventListener("submit", handleReply);
+
+    memberSection.addEventListener("click", handleMemberClick);
   }
 
   // =========================================
-  // AUTHENTICATION STATE
+  // MEDIA PREVIEW
   // =========================================
 
-  async function getCurrentSession() {
-    const { data, error } = await supabase.auth.getSession();
+  function previewSelectedMedia() {
+    const input = byId("socialMediaInput");
+    const preview = byId("socialMediaPreview");
 
-    if (error) {
-      console.error(
-        "EVERYDAY Social session:",
-        error.message
-      );
+    if (!input || !preview) return;
 
-      return null;
+    preview.replaceChildren();
+
+    const file = input.files?.[0];
+
+    if (!file) return;
+
+    if (!MEDIA_TYPES.includes(file.type)) {
+      input.value = "";
+      setStatus("That file type is not supported.", true);
+      return;
     }
 
-    return data.session;
-  }
+    if (file.size > MEDIA_MAX_SIZE) {
+      input.value = "";
+      setStatus("Your attachment must be 50 MB or smaller.", true);
+      return;
+    }
 
-  async function handleAuthChange(session) {
-    currentUser = session?.user || null;
+    const objectUrl = URL.createObjectURL(file);
 
-    const guestNotice = byId("socialGuestNotice");
-    const composeInput = byId("socialComposeInput");
+    let media;
 
-    const submitButton = document.querySelector(
-      "#socialComposeForm button[type='submit']"
+    if (isVideoType(file.type)) {
+      media = document.createElement("video");
+      media.controls = true;
+      media.preload = "metadata";
+    } else {
+      media = document.createElement("img");
+      media.alt = "Selected post attachment preview";
+    }
+
+    media.src = objectUrl;
+
+    media.addEventListener("error", () => {
+      setStatus("Could not preview this attachment.", true);
+    });
+
+    const removeButton = createElement(
+      "button",
+      "social-remove-media",
+      "Remove"
     );
 
-    if (guestNotice) {
-      guestNotice.hidden = Boolean(currentUser);
-    }
+    removeButton.type = "button";
+    removeButton.dataset.removeMedia = "true";
 
-    if (composeInput) {
-      composeInput.placeholder = currentUser
-        ? "Write something worth sharing..."
-        : "Write a thought to save on this device...";
-    }
+    preview.appendChild(media);
+    preview.appendChild(removeButton);
 
-    if (submitButton) {
-      submitButton.textContent = currentUser
-        ? "Share thought"
-        : "Save thought";
-    }
-
-    if (!currentUser) {
-      currentProfile = null;
-      followRelationships = [];
-      incomingRequests = [];
-
-      await loadFeed();
-      renderIncomingRequests();
-
-      return;
-    }
-
-    await Promise.all([
-      loadCurrentProfile(),
-      loadFollowRelationships(),
-      loadIncomingRequests()
-    ]);
-
-    await loadFeed();
-
-    updatePrivacyControl();
-    await renderIncomingRequests();
+    setStatus("");
   }
 
   // =========================================
-  // PROFILE
-  // =========================================
-
-  async function loadCurrentProfile() {
-    if (!currentUser) return;
-
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("id,nickname,bio,is_private")
-      .eq("id", currentUser.id)
-      .maybeSingle();
-
-    if (error) {
-      console.error(
-        "EVERYDAY Social profile:",
-        error.message
-      );
-
-      return;
-    }
-
-    currentProfile = data || {
-      id: currentUser.id,
-      nickname: "",
-      bio: "",
-      is_private: false
-    };
-
-    updatePrivacyControl();
-  }
-
-  function updatePrivacyControl() {
-    const select = byId("socialProfilePrivacy");
-
-    if (!select) return;
-
-    select.value = currentProfile?.is_private
-      ? "private"
-      : "public";
-  }
-
-  async function saveProfilePrivacy() {
-    if (!currentUser) {
-      setStatus(
-        byId("socialPrivacyStatus"),
-        "Please sign in to change profile privacy.",
-        true
-      );
-
-      return;
-    }
-
-    const select = byId("socialProfilePrivacy");
-    const status = byId("socialPrivacyStatus");
-
-    if (!select) return;
-
-    const isPrivate = select.value === "private";
-
-    const { error } = await supabase
-      .from("user_profiles")
-      .upsert(
-        {
-          id: currentUser.id,
-          is_private: isPrivate,
-          updated_at: new Date().toISOString()
-        },
-        { onConflict: "id" }
-      );
-
-    if (error) {
-      setStatus(status, error.message, true);
-      return;
-    }
-
-    currentProfile = {
-      ...(currentProfile || {}),
-      id: currentUser.id,
-      is_private: isPrivate
-    };
-
-    setStatus(
-      status,
-      isPrivate
-        ? "Your profile is now private."
-        : "Your profile is now public."
-    );
-
-    await loadCurrentProfile();
-    await loadIncomingRequests();
-
-    await renderIncomingRequests();
-  }
-
-  // =========================================
-  // COMMUNITY POSTS
+  // CREATE COMMUNITY POST
   // =========================================
 
   async function handleNewPost(event) {
     event.preventDefault();
 
-    const input = byId("socialComposeInput");
-    const text = input?.value.trim();
+    const input = byId("socialPostInput");
+    const mediaInput = byId("socialMediaInput");
+    const button = event.currentTarget.querySelector(
+      'button[type="submit"]'
+    );
 
-    if (!text) return;
+    if (!input) return;
 
-    if (text.length > MAX_POST_LENGTH) {
-      setStatus(
-        byId("socialFeedStatus"),
-        "Your thought is too long.",
-        true
-      );
+    const text = input.value.trim();
+    const file = mediaInput?.files?.[0] || null;
 
+    if (!text && !file) {
+      setStatus("Write something or attach a photo or video.", true);
       return;
     }
 
-    const submitButton = document.querySelector(
-      "#socialComposeForm button[type='submit']"
-    );
-
-    if (submitButton) {
-      submitButton.disabled = true;
-      submitButton.textContent = "Sharing...";
+    if (text.length > MAX_POST_LENGTH) {
+      setStatus("Your post is too long.", true);
+      return;
     }
 
-    try {
-      if (!currentUser) {
-        const posts = getLocalPosts();
+    // Guest posts are local text-only posts.
 
-        posts.unshift({
-          id: crypto.randomUUID(),
-          user_id: null,
-          text,
-          author: "Guest",
-          parent_id: null,
-          created_at: new Date().toISOString(),
-          local: true
-        });
-
-        if (!saveLocalPosts(posts)) {
-          throw new Error(
-            "Your thought could not be saved on this device."
-          );
-        }
-
-        input.value = "";
-
-        const count = byId("socialCharacterCount");
-
-        if (count) {
-          count.textContent = `0 / ${MAX_POST_LENGTH}`;
-        }
-
-        await loadFeed();
-
+    if (!currentUser) {
+      if (file) {
+        setStatus(
+          "Please sign in to upload photos and videos. Guest posts can be text-only.",
+          true
+        );
         return;
       }
+
+      const localPost = {
+        id: "local-" + Date.now(),
+        text,
+        author: "Guest",
+        user_id: null,
+        parent_id: null,
+        media_path: null,
+        media_type: null,
+        created_at: new Date().toISOString(),
+        is_local: true
+      };
+
+      const posts = getLocalPosts();
+      posts.unshift(localPost);
+      saveLocalPosts(posts);
+
+      input.value = "";
+      byId("socialCharacterCount").textContent = "0/1000";
+
+      await loadFeed();
+      setStatus("Your thought has been saved on this device.");
+      return;
+    }
+
+    setButtonLoading(button, true, "Sharing...");
+    setStatus("");
+
+    let uploadedPath = null;
+
+    try {
+      const postId = crypto.randomUUID();
+
+      let mediaPath = null;
+      let mediaType = null;
+
+      if (file) {
+        const uploaded = await uploadPostMedia(file, postId);
+
+        mediaPath = uploaded.path;
+        mediaType = uploaded.type;
+        uploadedPath = uploaded.path;
+      }
+
+      const nickname = getNickname(
+        currentProfile,
+        "Everyday member"
+      );
 
       const { error } = await supabase
         .from("community_thoughts")
         .insert({
+          id: postId,
           user_id: currentUser.id,
-          text,
-          author: getNickname(),
-          parent_id: null
+          text: text || (
+            isVideoType(mediaType)
+              ? "Shared a video."
+              : "Shared a photo."
+          ),
+          author: nickname,
+          parent_id: null,
+          media_path: mediaPath,
+          media_type: mediaType
         });
 
-      if (error) throw error;
+      if (error) {
+        if (uploadedPath) {
+          await supabase.storage
+            .from(MEDIA_BUCKET)
+            .remove([uploadedPath]);
+        }
+
+        throw error;
+      }
 
       input.value = "";
 
-      const count = byId("socialCharacterCount");
-
-      if (count) {
-        count.textContent = `0 / ${MAX_POST_LENGTH}`;
+      if (mediaInput) {
+        mediaInput.value = "";
       }
+
+      byId("socialCharacterCount").textContent = "0/1000";
+
+      byId("socialMediaPreview")?.replaceChildren();
 
       await loadFeed();
 
+      setStatus("Your thought has been shared.");
     } catch (error) {
+      console.error("Could not create community post:", error);
+
       setStatus(
-        byId("socialFeedStatus"),
-        error.message || "Your thought could not be shared.",
+        error.message || "Could not share your post. Please try again.",
         true
       );
-
     } finally {
-      if (submitButton) {
-        submitButton.disabled = false;
-
-        submitButton.textContent = currentUser
-          ? "Share thought"
-          : "Save thought";
-      }
+      setButtonLoading(button, false);
     }
   }
 
+  // =========================================
+  // LOAD FEED
+  // =========================================
+
   async function loadFeed() {
     const feed = byId("socialFeed");
-    const status = byId("socialFeedStatus");
 
     if (!feed) return;
 
-    feed.replaceChildren();
-
-    setStatus(status, "Loading community thoughts...");
+    setStatus("Loading community posts...");
 
     const localPosts = getLocalPosts();
 
     if (!currentUser) {
       feedPosts = localPosts;
-      renderFeed();
-
+      await renderFeed();
+      setStatus("");
       return;
     }
 
     const { data, error } = await supabase
       .from("community_thoughts")
-      .select("id,user_id,text,author,parent_id,created_at")
-      .order("created_at", { ascending: false })
-      .limit(MAX_FEED_POSTS);
+      .select(
+        "id,user_id,text,author,parent_id,created_at,media_path,media_type"
+      )
+      .order("created_at", {
+        ascending: false
+      })
+      .limit(500);
 
     if (error) {
+      console.error("Could not load community feed:", error);
+
+      feedPosts = localPosts;
+
+      await renderFeed();
+
       setStatus(
-        status,
-        "We couldn't load the community right now. Please try again.",
+        "Could not load shared posts. Showing locally saved posts.",
         true
       );
-
-      console.error(
-        "EVERYDAY Social feed:",
-        error.message
-      );
-
-      // Still show locally saved guest posts if the
-      // community feed cannot be loaded.
-      feedPosts = localPosts;
-      renderFeed();
 
       return;
     }
 
-    // Keep guest posts visible on this device after login.
-    // These posts remain local and are not uploaded to Supabase.
     feedPosts = mergePosts(data || [], localPosts);
 
-    renderFeed();
+    await renderFeed();
+
+    setStatus("");
   }
 
-  function renderFeed() {
+  // =========================================
+  // RENDER FEED
+  // =========================================
+
+  async function renderFeed() {
     const feed = byId("socialFeed");
-    const status = byId("socialFeedStatus");
 
     if (!feed) return;
 
     feed.replaceChildren();
 
-    const roots = feedPosts
-      .filter((post) => !post.parent_id)
-      .sort(
-        (a, b) =>
-          new Date(b.created_at) - new Date(a.created_at)
-      );
+    const rootPosts = feedPosts.filter(
+      (post) => !post.parent_id
+    );
 
-    if (!roots.length) {
-      setStatus(
-        status,
-        currentUser
-          ? "No thoughts here yet. Be the first to start a conversation."
-          : "No local thoughts yet. Share the first one."
+    if (!rootPosts.length) {
+      feed.appendChild(
+        createElement(
+          "p",
+          "muted",
+          "No posts yet. Be the first to share a thought."
+        )
       );
 
       return;
     }
 
-    setStatus(status, "");
+    for (const post of rootPosts) {
+      const postElement = await renderPost(post, 0);
 
-    roots.forEach((post) => {
-      feed.append(renderPost(post, 0));
-    });
+      feed.appendChild(postElement);
+    }
   }
 
-  function renderPost(post, depth) {
+  async function renderPost(post, depth = 0) {
     const wrapper = createElement(
       "article",
       depth > 0
@@ -845,28 +955,26 @@
         : "social-post"
     );
 
-    const header = createElement(
-      "div",
-      "social-post-header"
-    );
+    wrapper.dataset.postId = post.id;
 
-    const avatar = createElement(
-      "div",
-      "social-post-avatar",
-      (post.author || "E").charAt(0).toUpperCase()
-    );
+    const header = createElement("div", "social-post-header");
 
-    const authorBlock = createElement(
+    const author = post.author || "Everyday member";
+
+    const avatar = createAvatarElement(author);
+
+    header.appendChild(avatar);
+
+    const authorDetails = createElement(
       "div",
       "social-post-author"
     );
 
-    authorBlock.append(
-      createElement(
-        "strong",
-        "",
-        post.author || "Everyday member"
-      ),
+    authorDetails.appendChild(
+      createElement("strong", "", author)
+    );
+
+    authorDetails.appendChild(
       createElement(
         "span",
         "",
@@ -874,22 +982,78 @@
       )
     );
 
-    header.append(avatar, authorBlock);
+    header.appendChild(authorDetails);
+    wrapper.appendChild(header);
 
-    const content = createElement(
+    await applyAvatar(
+      avatar,
+      post.avatar_path,
+      author
+    );
+
+    const text = createElement(
       "p",
       "social-post-text",
-      post.text
+      post.text || ""
     );
+
+    wrapper.appendChild(text);
+
+    // Media attachment
+
+    if (post.media_path && post.media_type) {
+      const mediaUrl = await createSignedMediaUrl(
+        MEDIA_BUCKET,
+        post.media_path
+      );
+
+      if (mediaUrl) {
+        const mediaContainer = createElement(
+          "div",
+          "social-post-media"
+        );
+
+        if (isVideoType(post.media_type)) {
+          const video = document.createElement("video");
+
+          video.src = mediaUrl;
+          video.controls = true;
+          video.preload = "metadata";
+          video.playsInline = true;
+
+          mediaContainer.appendChild(video);
+        } else {
+          const image = document.createElement("img");
+
+          image.src = mediaUrl;
+          image.alt = "Community post attachment";
+          image.loading = "lazy";
+
+          mediaContainer.appendChild(image);
+        }
+
+        wrapper.appendChild(mediaContainer);
+      }
+    }
+
+    if (post.is_local) {
+      wrapper.appendChild(
+        createElement(
+          "span",
+          "social-local-label",
+          "Saved on this device"
+        )
+      );
+    }
+
+    // Actions
 
     const actions = createElement(
       "div",
       "social-post-actions"
     );
 
-    // Guest posts exist only in local storage.
-    // They cannot be used as Supabase reply parents.
-    if (!post.local) {
+    if (!post.is_local && currentUser) {
       const replyButton = createElement(
         "button",
         "text-button",
@@ -899,31 +1063,18 @@
       replyButton.type = "button";
       replyButton.dataset.replyTo = post.id;
 
-      actions.append(replyButton);
-    } else {
-      actions.append(
-        createElement(
-          "span",
-          "social-local-label",
-          "Saved on this device"
-        )
-      );
+      actions.appendChild(replyButton);
     }
 
-    const children = feedPosts
-      .filter((item) => item.parent_id === post.id)
-      .sort(
-        (a, b) =>
-          new Date(a.created_at) - new Date(b.created_at)
-      );
+    wrapper.appendChild(actions);
 
-    const childContainer = createElement(
-      "div",
-      "social-replies"
-    );
+    // Reply form
 
-    // Only server posts can receive replies.
-    if (!post.local && depth < 4) {
+    if (
+      !post.is_local &&
+      currentUser &&
+      depth < 4
+    ) {
       const replyForm = createElement(
         "form",
         "social-reply-form"
@@ -932,205 +1083,487 @@
       replyForm.dataset.parentId = post.id;
 
       const replyInput = document.createElement("input");
+
       replyInput.type = "text";
       replyInput.maxLength = MAX_POST_LENGTH;
       replyInput.placeholder = "Write a reply...";
       replyInput.required = true;
 
-      replyInput.setAttribute(
-        "aria-label",
-        `Reply to ${post.author || "this thought"}`
-      );
-
       const replySubmit = createElement(
         "button",
-        "secondary-button",
-        "Send"
+        "primary-button",
+        "Reply"
       );
 
       replySubmit.type = "submit";
 
-      replyForm.append(replyInput, replySubmit);
+      replyForm.appendChild(replyInput);
+      replyForm.appendChild(replySubmit);
 
-      wrapper.append(header, content, actions, replyForm);
-    } else {
-      wrapper.append(header, content, actions);
+      wrapper.appendChild(replyForm);
     }
 
-    children.forEach((child) => {
-      childContainer.append(
-        renderPost(child, depth + 1)
-      );
-    });
+    // Nested replies
+
+    const children = feedPosts.filter(
+      (item) => item.parent_id === post.id
+    );
 
     if (children.length) {
-      wrapper.append(childContainer);
+      const replies = createElement(
+        "div",
+        "social-replies"
+      );
+
+      for (const child of children) {
+        const childElement = await renderPost(
+          child,
+          depth + 1
+        );
+
+        replies.appendChild(childElement);
+      }
+
+      wrapper.appendChild(replies);
     }
 
     return wrapper;
   }
 
   // =========================================
-  // REPLIES
+  // FEED INTERACTIONS
   // =========================================
 
+  function handleFeedClick(event) {
+    const replyButton = event.target.closest(
+      "[data-reply-to]"
+    );
+
+    if (!replyButton) return;
+
+    const post = replyButton.closest(".social-post");
+
+    const form = post?.querySelector(
+      ".social-reply-form"
+    );
+
+    if (!form) return;
+
+    form.classList.toggle("is-visible");
+
+    if (form.classList.contains("is-visible")) {
+      form.querySelector("input")?.focus();
+    }
+  }
+
   async function handleReply(event) {
-    const form = event.target.closest(".social-reply-form");
+    const form = event.target.closest(
+      ".social-reply-form"
+    );
 
     if (!form) return;
 
     event.preventDefault();
 
     if (!currentUser) {
-      setStatus(
-        byId("socialFeedStatus"),
-        "Sign in to reply to community conversations.",
-        true
-      );
-
+      setStatus("Please sign in to reply.", true);
       return;
     }
 
     const input = form.querySelector("input");
-    const text = input?.value.trim();
-    const parentId = form.dataset.parentId;
-
-    if (!text || !parentId) return;
-
     const button = form.querySelector("button");
 
-    if (button) {
-      button.disabled = true;
-      button.textContent = "Sending...";
-    }
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    const parentId = form.dataset.parentId;
+
+    setButtonLoading(button, true, "Sending...");
 
     try {
+      const nickname = getNickname(
+        currentProfile,
+        "Everyday member"
+      );
+
       const { error } = await supabase
         .from("community_thoughts")
         .insert({
           user_id: currentUser.id,
           text,
-          author: getNickname(),
+          author: nickname,
           parent_id: parentId
         });
 
       if (error) throw error;
 
       await loadFeed();
-
+      setStatus("Your reply has been shared.");
     } catch (error) {
+      console.error("Could not send reply:", error);
+
       setStatus(
-        byId("socialFeedStatus"),
-        error.message || "Your reply could not be sent.",
+        error.message || "Could not send your reply.",
         true
       );
-
-      if (button) {
-        button.disabled = false;
-        button.textContent = "Send";
-      }
+    } finally {
+      setButtonLoading(button, false);
     }
+  }
+
+  // =========================================
+  // PROFILE PICTURE INTERFACE
+  // =========================================
+
+  function buildProfileAvatarInterface() {
+    const profileEditor = byId("profileEditor");
+
+    if (!profileEditor) return;
+
+    let avatarArea = byId("everydayAvatarSettings");
+
+    if (!avatarArea) {
+      avatarArea = createElement(
+        "div",
+        "everyday-avatar-settings"
+      );
+
+      avatarArea.id = "everydayAvatarSettings";
+
+      const heading = createElement(
+        "h3",
+        "",
+        "Profile picture"
+      );
+
+      const avatar = createAvatarElement(
+        "You",
+        "everyday-profile-avatar"
+      );
+
+      avatar.id = "everydayProfileAvatar";
+
+      const label = createElement(
+        "label",
+        "social-attachment-button",
+        "Change profile picture"
+      );
+
+      label.htmlFor = "everydayAvatarInput";
+
+      const input = document.createElement("input");
+
+      input.type = "file";
+      input.id = "everydayAvatarInput";
+      input.accept = "image/jpeg,image/png,image/webp,image/gif";
+      input.hidden = true;
+
+      const feedback = createElement(
+        "p",
+        "feedback"
+      );
+
+      feedback.id = "everydayAvatarFeedback";
+
+      avatarArea.appendChild(heading);
+      avatarArea.appendChild(avatar);
+      avatarArea.appendChild(label);
+      avatarArea.appendChild(input);
+      avatarArea.appendChild(feedback);
+
+      profileEditor.prepend(avatarArea);
+
+      input.addEventListener("change", handleAvatarSelection);
+    }
+  }
+
+  async function handleAvatarSelection(event) {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+
+    if (!file) return;
+
+    const feedback = byId("everydayAvatarFeedback");
+
+    if (!currentUser) {
+      if (feedback) {
+        feedback.textContent =
+          "Please sign in to upload a profile picture.";
+      }
+
+      input.value = "";
+      return;
+    }
+
+    if (feedback) {
+      feedback.textContent = "Uploading profile picture...";
+    }
+
+    try {
+      await uploadAvatar(file);
+
+      if (feedback) {
+        feedback.textContent =
+          "Your profile picture has been updated.";
+      }
+    } catch (error) {
+      console.error("Avatar upload failed:", error);
+
+      if (feedback) {
+        feedback.textContent =
+          error.message || "Could not upload your picture.";
+      }
+    } finally {
+      input.value = "";
+    }
+  }
+
+  // =========================================
+  // PROFILE PRIVACY INTERFACE
+  // =========================================
+
+  function buildProfileSocialInterface() {
+    const profileEditor = byId("profileEditor");
+
+    if (!profileEditor) return;
+
+    let settings = byId("socialPrivacySettings");
+
+    if (settings) return;
+
+    settings = createElement(
+      "section",
+      "social-privacy-settings"
+    );
+
+    settings.id = "socialPrivacySettings";
+
+    settings.appendChild(
+      createElement("h3", "", "Profile visibility")
+    );
+
+    settings.appendChild(
+      createElement(
+        "p",
+        "muted",
+        "Choose who can view your community profile and posts."
+      )
+    );
+
+    const label = createElement(
+      "label",
+      "",
+      "Who can see your profile?"
+    );
+
+    label.htmlFor = "socialProfilePrivacy";
+
+    const select = document.createElement("select");
+    select.id = "socialProfilePrivacy";
+
+    const publicOption = document.createElement("option");
+    publicOption.value = "public";
+    publicOption.textContent = "Public";
+
+    const privateOption = document.createElement("option");
+    privateOption.value = "private";
+    privateOption.textContent = "Private";
+
+    select.appendChild(publicOption);
+    select.appendChild(privateOption);
+
+    const saveButton = createElement(
+      "button",
+      "primary-button",
+      "Save privacy settings"
+    );
+
+    saveButton.type = "button";
+    saveButton.id = "socialSavePrivacy";
+
+    const feedback = createElement("p", "feedback");
+    feedback.id = "socialPrivacyFeedback";
+
+    settings.appendChild(label);
+    settings.appendChild(select);
+    settings.appendChild(saveButton);
+    settings.appendChild(feedback);
+
+    profileEditor.appendChild(settings);
+
+    saveButton.addEventListener(
+      "click",
+      saveProfilePrivacy
+    );
+  }
+
+  async function saveProfilePrivacy() {
+    if (!currentUser) return;
+
+    const select = byId("socialProfilePrivacy");
+    const button = byId("socialSavePrivacy");
+    const feedback = byId("socialPrivacyFeedback");
+
+    if (!select) return;
+
+    const isPrivate = select.value === "private";
+
+    setButtonLoading(button, true, "Saving...");
+
+    try {
+      const { error } = await supabase
+        .from("user_profiles")
+        .upsert(
+          {
+            id: currentUser.id,
+            is_private: isPrivate,
+            updated_at: new Date().toISOString()
+          },
+          {
+            onConflict: "id"
+          }
+        );
+
+      if (error) throw error;
+
+      currentProfile = {
+        ...currentProfile,
+        is_private: isPrivate
+      };
+
+      if (feedback) {
+        feedback.textContent = "Privacy settings saved.";
+      }
+
+      await loadFeed();
+    } catch (error) {
+      console.error("Could not save privacy settings:", error);
+
+      if (feedback) {
+        feedback.textContent =
+          error.message || "Could not save settings.";
+      }
+    } finally {
+      setButtonLoading(button, false);
+    }
+  }
+
+  // =========================================
+  // LOAD PROFILE
+  // =========================================
+
+  async function loadCurrentProfile() {
+    if (!currentUser) return;
+
+    const { data, error } = await supabase
+      .from("user_profiles")
+      .select(
+        "id,nickname,bio,is_private,avatar_path"
+      )
+      .eq("id", currentUser.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Could not load profile:", error);
+    }
+
+    currentProfile = data || {
+      id: currentUser.id,
+      nickname: "Everyday member",
+      bio: "",
+      is_private: false,
+      avatar_path: null
+    };
+
+    const privacySelect = byId("socialProfilePrivacy");
+
+    if (privacySelect) {
+      privacySelect.value = currentProfile.is_private
+        ? "private"
+        : "public";
+    }
+
+    await renderProfileAvatar();
   }
 
   // =========================================
   // MEMBER SEARCH
   // =========================================
 
-  async function searchMembers(value) {
+  async function searchMembers(query) {
     const results = byId("socialMemberResults");
 
     if (!results) return;
+
+    const search = escapeSearchTerm(query).trim();
 
     const requestNumber = ++searchRequestNumber;
 
     results.replaceChildren();
 
+    if (!search) return;
+
     if (!currentUser) {
-      results.append(
+      results.appendChild(
         createElement(
           "p",
           "muted",
-          "Sign in to discover and follow other members."
+          "Sign in to discover and follow members."
         )
       );
 
       return;
     }
-
-    const query = escapeSearchTerm(value);
-
-    if (query.length < 2) {
-      results.append(
-        createElement(
-          "p",
-          "muted",
-          "Enter at least two characters to search."
-        )
-      );
-
-      return;
-    }
-
-    results.append(
-      createElement("p", "muted", "Searching...")
-    );
 
     const { data, error } = await supabase
       .from("user_profiles")
-      .select("id,nickname,is_private")
-      .ilike("nickname", `%${query}%`)
+      .select("id,nickname,bio,is_private,avatar_path")
+      .ilike("nickname", "%" + search + "%")
       .neq("id", currentUser.id)
-      .limit(20);
+      .limit(15);
 
-    // Ignore older searches that finish after a newer one.
     if (requestNumber !== searchRequestNumber) return;
 
-    results.replaceChildren();
-
     if (error) {
-      results.append(
-        createElement(
-          "p",
-          "social-error",
-          "We couldn't search members right now."
-        )
+      console.error("Member search failed:", error);
+      results.appendChild(
+        createElement("p", "muted", "Could not search members.")
       );
+      return;
+    }
 
-      console.error(
-        "EVERYDAY member search:",
-        error.message
+    if (!data?.length) {
+      results.appendChild(
+        createElement("p", "muted", "No members found.")
       );
 
       return;
     }
 
-    if (!data || !data.length) {
-      results.append(
-        createElement(
-          "p",
-          "muted",
-          "No members found with that nickname."
-        )
-      );
-
-      return;
+    for (const profile of data) {
+      const row = await renderMember(profile);
+      results.appendChild(row);
     }
-
-    data.forEach((profile) => {
-      results.append(renderMember(profile));
-    });
   }
 
-  function renderMember(profile) {
+  async function renderMember(profile) {
     const row = createElement(
       "div",
       "social-member-row"
     );
 
-    const avatar = createElement(
-      "div",
-      "social-post-avatar",
-      (profile.nickname || "E").charAt(0).toUpperCase()
+    const avatar = createAvatarElement(
+      profile.nickname,
+      "social-post-avatar"
+    );
+
+    row.appendChild(avatar);
+
+    await applyAvatar(
+      avatar,
+      profile.avatar_path,
+      profile.nickname
     );
 
     const details = createElement(
@@ -1138,132 +1571,110 @@
       "social-member-details"
     );
 
-    details.append(
+    details.appendChild(
       createElement(
         "strong",
         "",
         profile.nickname || "Everyday member"
-      ),
-      createElement(
-        "span",
-        "",
-        profile.is_private
-          ? "Private profile"
-          : "Public profile"
       )
     );
 
-    const relationship = getFollowRelationship(profile.id);
-
-    const button = createElement(
-      "button",
-      "secondary-button social-follow-button",
-      getFollowButtonLabel(relationship)
+    details.appendChild(
+      createElement(
+        "span",
+        "",
+        profile.is_private ? "Private profile" : "Public profile"
+      )
     );
 
-    button.type = "button";
-    button.disabled = false;
-    button.dataset.followUser = profile.id;
+    row.appendChild(details);
 
-    row.append(avatar, details, button);
+    if (currentUser) {
+      const button = createElement(
+        "button",
+        "secondary-button social-follow-button",
+        getFollowButtonLabel(
+          profile.id,
+          profile.is_private
+        )
+      );
+
+      button.type = "button";
+      button.dataset.followUser = profile.id;
+      button.disabled =
+        getFollowButtonLabel(
+          profile.id,
+          profile.is_private
+        ) !== "Follow";
+
+      row.appendChild(button);
+    }
 
     return row;
   }
 
   // =========================================
-  // FOLLOWING / UNFOLLOWING
+  // FOLLOW RELATIONSHIPS
   // =========================================
 
   async function loadFollowRelationships() {
-    if (!currentUser) {
-      followRelationships = [];
-      return;
-    }
+    if (!currentUser) return;
 
     const { data, error } = await supabase
       .from("user_follows")
       .select("id,follower_id,following_id,status")
-      .eq("follower_id", currentUser.id);
-
-    if (error) {
-      console.error(
-        "EVERYDAY follows:",
-        error.message
+      .or(
+        "follower_id.eq." +
+        currentUser.id +
+        ",following_id.eq." +
+        currentUser.id
       );
 
+    if (error) {
+      console.error("Could not load follow relationships:", error);
       return;
     }
 
     followRelationships = data || [];
   }
 
-  async function followMember(userId, button) {
-    if (!currentUser || !userId || !button) return;
+  async function followMember(userId) {
+    if (!currentUser || !userId) return;
 
-    const relationship = getFollowRelationship(userId);
+    const existing = followRelationships.find(
+      (relationship) =>
+        relationship.follower_id === currentUser.id &&
+        relationship.following_id === userId
+    );
 
-    button.disabled = true;
+    if (existing) {
+      return;
+    }
 
-    try {
-      if (relationship) {
-        button.textContent = "Updating...";
+    const { error } = await supabase
+      .from("user_follows")
+      .insert({
+        follower_id: currentUser.id,
+        following_id: userId
+      });
 
-        // Remove an existing accepted follow or
-        // cancel a pending follow request.
-        const { error } = await supabase
-          .from("user_follows")
-          .delete()
-          .eq("id", relationship.id)
-          .eq("follower_id", currentUser.id);
-
-        if (error) throw error;
-
-        await loadFollowRelationships();
-
-        button.textContent = "Follow";
-        button.disabled = false;
-
-        return;
-      }
-
-      button.textContent = "Following...";
-
-      const { error } = await supabase
-        .from("user_follows")
-        .insert({
-          follower_id: currentUser.id,
-          following_id: userId
-        });
-
-      if (error) throw error;
-
-      await loadFollowRelationships();
-
-      const updatedRelationship =
-        getFollowRelationship(userId);
-
-      button.textContent =
-        getFollowButtonLabel(updatedRelationship);
-
-      button.disabled = false;
-
-    } catch (error) {
-      console.error(
-        "EVERYDAY follow action:",
-        error.message
-      );
-
-      button.textContent = relationship
-        ? getFollowButtonLabel(relationship)
-        : "Follow";
-
-      button.disabled = false;
-
+    if (error) {
+      console.error("Could not follow member:", error);
       setStatus(
-        byId("socialPrivacyStatus"),
-        error.message || "We couldn't update this follow.",
+        error.message || "Could not follow this member.",
         true
       );
+      return;
+    }
+
+    await loadFollowRelationships();
+
+    setStatus("Your follow request has been sent.");
+
+    const search = byId("socialMemberSearch");
+
+    if (search?.value) {
+      await searchMembers(search.value);
     }
   }
 
@@ -1272,10 +1683,7 @@
   // =========================================
 
   async function loadIncomingRequests() {
-    if (!currentUser) {
-      incomingRequests = [];
-      return;
-    }
+    if (!currentUser) return;
 
     const { data, error } = await supabase
       .from("user_follows")
@@ -1284,114 +1692,76 @@
       .eq("status", "pending");
 
     if (error) {
-      console.error(
-        "EVERYDAY follow requests:",
-        error.message
-      );
-
-      incomingRequests = [];
+      console.error("Could not load follow requests:", error);
       return;
     }
 
     incomingRequests = data || [];
+
+    await renderIncomingRequests();
   }
 
-  async function getRequestProfiles(requests) {
-    const userIds = [
-      ...new Set(
-        requests.map((request) => request.follower_id)
-      )
-    ];
+  async function renderIncomingRequests() {
+    const list = byId("socialRequestList");
 
-    if (!userIds.length) return {};
+    if (!list) return;
+
+    list.replaceChildren();
+
+    if (!currentUser || !incomingRequests.length) {
+      list.appendChild(
+        createElement(
+          "p",
+          "muted",
+          currentUser
+            ? "No pending follow requests."
+            : "Sign in to manage follow requests."
+        )
+      );
+
+      return;
+    }
+
+    const ids = incomingRequests.map(
+      (request) => request.follower_id
+    );
 
     const { data, error } = await supabase
       .from("user_profiles")
       .select("id,nickname")
-      .in("id", userIds);
+      .in("id", ids);
 
     if (error) {
-      console.error(
-        "EVERYDAY request profiles:",
-        error.message
-      );
-
-      return {};
-    }
-
-    const profiles = {};
-
-    (data || []).forEach((profile) => {
-      profiles[profile.id] = profile;
-    });
-
-    return profiles;
-  }
-
-  async function renderIncomingRequests() {
-    const container = byId("socialIncomingRequests");
-
-    if (!container) return;
-
-    container.replaceChildren();
-
-    if (!currentUser) {
-      container.append(
-        createElement(
-          "p",
-          "muted",
-          "Sign in to receive and manage follow requests."
-        )
-      );
-
+      console.error("Could not load requester profiles:", error);
       return;
     }
-
-    if (!incomingRequests.length) {
-      container.append(
-        createElement(
-          "p",
-          "muted",
-          "You don't have any pending follow requests."
-        )
-      );
-
-      return;
-    }
-
-    const profiles = await getRequestProfiles(incomingRequests);
-
-    // A newer request list may have replaced this one.
-    if (!container.isConnected) return;
 
     for (const request of incomingRequests) {
+      const profile = data?.find(
+        (item) => item.id === request.follower_id
+      );
+
       const row = createElement(
         "div",
         "social-request-row"
       );
 
-      const details = createElement(
-        "div",
-        "social-member-details"
+      row.appendChild(
+        createElement(
+          "strong",
+          "",
+          profile?.nickname || "Everyday member"
+        )
       );
 
-      const requester = profiles[request.follower_id];
-
-      const nickname =
-        requester?.nickname || "Everyday member";
-
-      details.append(
-        createElement("strong", "", nickname),
-        createElement(
-          "span",
-          "",
-          "Would like to follow you."
-        )
+      const actions = createElement(
+        "div",
+        "social-request-actions"
       );
 
       const approve = createElement(
         "button",
-        "secondary-button",
+        "primary-button",
         "Approve"
       );
 
@@ -1400,50 +1770,46 @@
 
       const decline = createElement(
         "button",
-        "text-button",
+        "secondary-button",
         "Decline"
       );
 
       decline.type = "button";
       decline.dataset.declineRequest = request.id;
 
-      const actions = createElement(
-        "div",
-        "social-request-actions"
-      );
+      actions.appendChild(approve);
+      actions.appendChild(decline);
 
-      actions.append(approve, decline);
-      row.append(details, actions);
-
-      container.append(row);
+      row.appendChild(actions);
+      list.appendChild(row);
     }
   }
 
   async function approveRequest(requestId) {
+    const request = incomingRequests.find(
+      (item) => item.id === requestId
+    );
+
+    if (!request) return;
+
     const { error } = await supabase
       .from("user_follows")
-      .update({ status: "accepted" })
+      .update({
+        status: "accepted"
+      })
       .eq("id", requestId)
-      .eq("following_id", currentUser.id)
-      .eq("status", "pending");
+      .eq("following_id", currentUser.id);
 
     if (error) {
-      console.error(
-        "EVERYDAY approve request:",
-        error.message
-      );
-
-      setStatus(
-        byId("socialPrivacyStatus"),
-        "We couldn't approve this request.",
-        true
-      );
-
+      console.error("Could not approve request:", error);
+      setStatus("Could not approve this request.", true);
       return;
     }
 
     await loadIncomingRequests();
-    await renderIncomingRequests();
+    await loadFollowRelationships();
+
+    setStatus("Follow request approved.");
   }
 
   async function declineRequest(requestId) {
@@ -1454,128 +1820,117 @@
       .eq("following_id", currentUser.id);
 
     if (error) {
-      console.error(
-        "EVERYDAY decline request:",
-        error.message
-      );
-
-      setStatus(
-        byId("socialPrivacyStatus"),
-        "We couldn't decline this request.",
-        true
-      );
-
+      console.error("Could not decline request:", error);
+      setStatus("Could not decline this request.", true);
       return;
     }
 
     await loadIncomingRequests();
-    await renderIncomingRequests();
+    setStatus("Follow request declined.");
   }
 
-  // =========================================
-  // INTERFACE EVENTS
-  // =========================================
-
-  document.addEventListener("submit", (event) => {
-    if (
-      event.target instanceof Element &&
-      event.target.matches(".social-reply-form")
-    ) {
-      handleReply(event);
-    }
-  });
-
-  document.addEventListener("click", (event) => {
-    if (!(event.target instanceof Element)) return;
-
-    const replyButton = event.target.closest(
-      "[data-reply-to]"
-    );
-
-    if (replyButton) {
-      const post = replyButton.closest(".social-post");
-      const form = post?.querySelector(".social-reply-form");
-      const input = form?.querySelector("input");
-
-      if (!currentUser) {
-        setStatus(
-          byId("socialFeedStatus"),
-          "Sign in to reply to community conversations.",
-          true
-        );
-
-        return;
-      }
-
-      if (form) {
-        form.classList.toggle("is-visible");
-        input?.focus();
-      }
-
-      return;
-    }
-
+  async function handleMemberClick(event) {
     const followButton = event.target.closest(
       "[data-follow-user]"
     );
-
-    if (followButton) {
-      followMember(
-        followButton.dataset.followUser,
-        followButton
-      );
-
-      return;
-    }
 
     const approveButton = event.target.closest(
       "[data-approve-request]"
     );
 
-    if (approveButton) {
-      approveRequest(
-        approveButton.dataset.approveRequest
-      );
-
-      return;
-    }
-
     const declineButton = event.target.closest(
       "[data-decline-request]"
     );
 
+    if (followButton) {
+      await followMember(followButton.dataset.followUser);
+      return;
+    }
+
+    if (approveButton) {
+      await approveRequest(
+        approveButton.dataset.approveRequest
+      );
+      return;
+    }
+
     if (declineButton) {
-      declineRequest(
+      await declineRequest(
         declineButton.dataset.declineRequest
       );
     }
-  });
+  }
+
+  // =========================================
+  // AUTHENTICATION
+  // =========================================
+
+  async function getCurrentSession() {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("Could not retrieve session:", error);
+      return;
+    }
+
+    await handleAuthChange(data.session);
+  }
+
+  async function handleAuthChange(session) {
+    currentUser = session?.user || null;
+
+    const notice = byId("socialGuestNotice");
+
+    if (!currentUser) {
+      currentProfile = null;
+      followRelationships = [];
+      incomingRequests = [];
+
+      if (notice) {
+        notice.textContent =
+          "You're browsing as a guest. Your text-only posts are saved on this device. Sign in to upload media and follow members.";
+      }
+
+      await loadFeed();
+      await renderIncomingRequests();
+
+      return;
+    }
+
+    if (notice) {
+      notice.textContent =
+        "Share your thoughts, upload photos and videos, and connect with the community.";
+    }
+
+    await loadCurrentProfile();
+    await loadFollowRelationships();
+    await loadIncomingRequests();
+    await loadFeed();
+
+    const search = byId("socialMemberSearch");
+
+    if (search?.value) {
+      await searchMembers(search.value);
+    }
+  }
 
   // =========================================
   // STARTUP
   // =========================================
 
-  async function start() {
+  function initialize() {
     buildCommunityInterface();
+    buildProfileAvatarInterface();
     buildProfileSocialInterface();
 
-    const session = await getCurrentSession();
+    getCurrentSession();
 
-    await handleAuthChange(session);
-
-    supabase.auth.onAuthStateChange((event, session) => {
-      // Avoid additional Supabase work inside
-      // the authentication callback itself.
-      setTimeout(() => {
-        handleAuthChange(session);
-      }, 0);
-    });
+    supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        await handleAuthChange(session);
+      }
+    );
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start);
-  } else {
-    start();
-  }
-
+  initialize();
 })();
