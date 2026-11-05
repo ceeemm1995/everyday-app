@@ -465,3 +465,155 @@
     justify-self: end;
   }
 }
+
+/* =========================================
+   EVERYDAY — PROFILE PICTURES
+========================================= */
+
+.everyday-avatar-settings {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(22, 17, 40, 0.52);
+  border: 1px solid rgba(190, 169, 255, 0.12);
+  border-radius: 15px;
+}
+
+.everyday-avatar-settings h3 {
+  margin: 0;
+  color: #f1ecfa;
+}
+
+.everyday-profile-avatar {
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #f5edff;
+  background: linear-gradient(135deg, #55427e, #7961a9);
+  border: 2px solid rgba(222, 207, 255, 0.25);
+  border-radius: 50%;
+  font-size: 1.7rem;
+  font-weight: 650;
+}
+
+.everyday-profile-avatar img,
+.social-post-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+/* =========================================
+   MEDIA ATTACHMENTS
+========================================= */
+
+.social-attachment-area {
+  display: grid;
+  gap: 12px;
+}
+
+.social-attachment-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 10px 15px;
+  color: #e9dfff;
+  background: rgba(151, 123, 220, 0.12);
+  border: 1px solid rgba(190, 169, 255, 0.2);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.86rem;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.social-attachment-button:hover {
+  background: rgba(151, 123, 220, 0.2);
+  border-color: rgba(190, 169, 255, 0.4);
+}
+
+.social-media-preview {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 420px);
+}
+
+.social-media-preview:empty {
+  display: none;
+}
+
+.social-media-preview img,
+.social-media-preview video {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  background: rgba(10, 8, 20, 0.7);
+  border: 1px solid rgba(190, 169, 255, 0.16);
+  border-radius: 12px;
+}
+
+.social-remove-media {
+  justify-self: start;
+  padding: 7px 12px;
+  color: #ffb7c1;
+  background: rgba(255, 100, 130, 0.08);
+  border: 1px solid rgba(255, 150, 170, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* =========================================
+   FEED MEDIA
+========================================= */
+
+.social-post-media {
+  width: 100%;
+  margin: 14px 0 18px;
+  overflow: hidden;
+  border: 1px solid rgba(190, 169, 255, 0.12);
+  border-radius: 13px;
+  background: rgba(10, 8, 20, 0.6);
+}
+
+.social-post-media img,
+.social-post-media video {
+  display: block;
+  width: 100%;
+  max-height: 560px;
+  object-fit: contain;
+  background: rgba(10, 8, 20, 0.6);
+}
+
+.social-local-label {
+  display: inline-block;
+  margin: 0 0 10px;
+  color: #bcb2d2;
+  font-size: 0.75rem;
+}
+
+/* =========================================
+   MOBILE MEDIA
+========================================= */
+
+@media (max-width: 600px) {
+  .social-media-preview {
+    width: 100%;
+  }
+
+  .social-post-media img,
+  .social-post-media video {
+    max-height: 380px;
+  }
+
+  .everyday-avatar-settings {
+    padding: 16px;
+  }
+}
