@@ -1,9 +1,10 @@
+
 (() => {
   "use strict";
 
   // =====================================
   // EVERYDAY — APP.JS
-  // Version 0.3
+  // Version 0.4
   // =====================================
 
   // =====================================
@@ -25,6 +26,7 @@
     SUPABASE_URL,
     SUPABASE_ANON_KEY
   );
+
   window.everydaySupabase = supabase;
 
   // =====================================
@@ -96,7 +98,11 @@
     });
   };
 
-  const setButtonLoading = (button, loading, loadingText = "Saving...") => {
+  const setButtonLoading = (
+    button,
+    loading,
+    loadingText = "Saving..."
+  ) => {
     if (!button) return;
 
     if (loading) {
@@ -131,7 +137,6 @@
   let loadedAccountId = null;
 
   const SAVED_KEY = "everydaySavedDiscoveries";
-  const THOUGHTS_KEY = "everydayThoughts";
 
   // =====================================
   // DOM ELEMENTS
@@ -150,7 +155,6 @@
 
   const magicLinkForm = $("magicLinkForm");
   const authEmailInput = $("authEmailInput");
-  const authStatusMessage = $("authStatusMessage");
 
   // =====================================
   // ACTIVITIES
@@ -428,16 +432,17 @@
     await loadJournalEntries();
     await loadGoalCircles();
     await loadSavedDiscoveries();
-    await loadCommunityThoughts();
     await migrateGuestDiscoveries();
+
+    // Connect is managed by social.js.
+    // Do not load or render community posts here.
   }
 
   function clearAccountDisplays() {
     [
       "journalEntries",
       "goalCircles",
-      "savedDiscoveries",
-      "communityWall"
+      "savedDiscoveries"
     ].forEach(id => {
       const element = $(id);
       if (element) element.replaceChildren();
@@ -708,17 +713,41 @@
     setButtonLoading(saveButton, true);
 
     try {
-      const { error } = await supabase
-        .from("user_profiles")
-        .upsert({
-          id: currentUser.id,
-          nickname,
-          bio,
-          completed_count: completed,
-          updated_at: new Date().toISOString()
-        });
+      const { data: existingProfile, error: lookupError } =
+        await supabase
+          .from("user_profiles")
+          .select("id")
+          .eq("id", currentUser.id)
+          .maybeSingle();
 
-      if (error) throw error;
+      if (lookupError) throw lookupError;
+
+      let result;
+
+      if (existingProfile) {
+        result = await supabase
+          .from("user_profiles")
+          .update({
+            nickname,
+            bio,
+            completed_count: completed,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", currentUser.id);
+      } else {
+        result = await supabase
+          .from("user_profiles")
+          .insert({
+            id: currentUser.id,
+            nickname,
+            bio,
+            completed_count: completed,
+            is_private: false,
+            updated_at: new Date().toISOString()
+          });
+      }
+
+      if (result.error) throw result.error;
 
       currentNickname = nickname;
       renderProfileIdentity(bio);
@@ -768,7 +797,6 @@
     });
   }
 
-  // Support a form-based profile layout too, if present.
   const profileForm = $("profileForm");
 
   if (profileForm) {
@@ -829,7 +857,11 @@
     entries.forEach(entry => {
       const card = createElement("article", "journal-entry-card");
 
-      const heading = createElement("h4", "", entry.title || "Untitled entry");
+      const heading = createElement(
+        "h4",
+        "",
+        entry.title || "Untitled entry"
+      );
 
       const date = createElement(
         "small",
@@ -1583,6 +1615,8 @@
     if (currentUser) {
       saveCompletedCount();
     }
+
+    updateExploreCompletedCount();
   }
 
   // =====================================
@@ -1668,294 +1702,13 @@
     $("completedCount").textContent = completed;
   }
 
-  // =====================================
-  // COMMUNITY THOUGHTS
-  // =====================================
+  function updateExploreCompletedCount() {
+    const counter = $("exploreCompletedCount");
 
-  function getLocalThoughts() {
-    return readLocal(THOUGHTS_KEY, []);
-  }
-
-  function saveLocalThought(thought) {
-    const saved = getLocalThoughts();
-
-    saved.unshift(thought);
-
-    writeLocal(
-      THOUGHTS_KEY,
-      saved.slice(0, 30)
-    );
-  }
-
-  function showCommunityStatus(message, type = "info") {
-    if ($("communityStatus")) {
-      showStatus("communityStatus", message, type);
-    } else if ($("answerFeedback")) {
-      showStatus("answerFeedback", message, type);
+    if (counter) {
+      counter.textContent = completed;
     }
   }
-
-  const thoughtForm = $("thoughtForm");
-
-  if (thoughtForm) {
-    thoughtForm.addEventListener("submit", async event => {
-      event.preventDefault();
-
-      const input = $("thoughtInput");
-      if (!input) return;
-
-      const value = input.value.trim();
-
-      if (!value) return;
-
-      if (value.length > 1000) {
-        showCommunityStatus(
-          "Please keep your thought under 1,000 characters.",
-          "error"
-        );
-        return;
-      }
-
-      const authorName = currentUser
-        ? currentNickname
-        : "You";
-
-      const thought = {
-        text: value,
-        author: authorName,
-        date: new Date().toISOString()
-      };
-
-      const submitButton = thoughtForm.querySelector(
-        'button[type="submit"]'
-      );
-
-      setButtonLoading(submitButton, true, "Sharing...");
-
-      try {
-        if (currentUser) {
-          const { error } = await supabase
-            .from("community_thoughts")
-            .insert([{
-              user_id: currentUser.id,
-              text: value,
-              author: authorName
-            }]);
-
-          if (error) throw error;
-
-          input.value = "";
-
-          await loadCommunityThoughts();
-
-          showCommunityStatus(
-            "Your thought has been shared!",
-            "success"
-          );
-        } else {
-          saveLocalThought(thought);
-
-          input.value = "";
-
-          renderLocalThoughts();
-
-          showCommunityStatus(
-            "Your thought has been saved on this device.",
-            "success"
-          );
-        }
-      } catch (error) {
-        console.error("Community save error:", error);
-
-        // Keep a local copy if cloud sharing fails.
-        saveLocalThought(thought);
-
-        input.value = "";
-
-        renderLocalThoughts();
-
-        showCommunityStatus(
-          "Saved on this device, but cloud sharing failed. Please try again later.",
-          "error"
-        );
-      } finally {
-        setButtonLoading(submitButton, false);
-      }
-    });
-  }
-
-  // =====================================
-  // COMMUNITY WALL
-  // =====================================
-
-  function addWallItem(text, letter, name = "You", date = null) {
-    const communityWall = $("communityWall");
-    if (!communityWall) return;
-
-    const row = createElement("article", "wall-item");
-
-    const avatar = createElement(
-      "span",
-      "avatar",
-      letter || "E"
-    );
-
-    const content = createElement("div", "wall-content");
-
-    const paragraph = createElement("p");
-
-    const strong = createElement(
-      "strong",
-      "",
-      name || "Everyday member"
-    );
-
-    const message = createElement(
-      "span",
-      "muted",
-      text || ""
-    );
-
-    paragraph.append(
-      strong,
-      document.createElement("br"),
-      message
-    );
-
-    content.appendChild(paragraph);
-
-    if (date) {
-      const dateElement = createElement(
-        "small",
-        "muted",
-        formatDate(date)
-      );
-
-      content.appendChild(dateElement);
-    }
-
-    row.append(avatar, content);
-
-    communityWall.appendChild(row);
-  }
-
-  function renderLocalThoughts() {
-    const communityWall = $("communityWall");
-    if (!communityWall) return;
-
-    communityWall.replaceChildren();
-
-    const savedThoughts = getLocalThoughts();
-
-    if (!savedThoughts.length) {
-      communityWall.appendChild(
-        createElement(
-          "p",
-          "muted",
-          "The community is waiting for its first thought."
-        )
-      );
-      return;
-    }
-
-    savedThoughts.forEach(item => {
-      const author = item.author || "You";
-
-      addWallItem(
-        item.text,
-        author.charAt(0).toUpperCase(),
-        author,
-        item.date
-      );
-    });
-  }
-
-  async function loadCommunityThoughts() {
-    if (!currentUser) {
-      renderLocalThoughts();
-      return;
-    }
-
-    const communityWall = $("communityWall");
-    if (!communityWall) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("community_thoughts")
-        .select("id, text, author, created_at")
-        .order("created_at", { ascending: false })
-        .limit(30);
-
-      if (error) throw error;
-
-      renderCommunityWall(data || []);
-    } catch (error) {
-      console.error("Community loading error:", error);
-
-      // Show locally saved thoughts if cloud loading fails.
-      renderLocalThoughts();
-    }
-  }
-
-  function renderCommunityWall(cloudThoughts) {
-    const communityWall = $("communityWall");
-    if (!communityWall) return;
-
-    communityWall.replaceChildren();
-
-    const localThoughts = getLocalThoughts();
-
-    const combined = [...cloudThoughts];
-
-    // Include local thoughts that are not already in the cloud list.
-    localThoughts.forEach(localItem => {
-      const alreadyExists = combined.some(cloudItem =>
-        cloudItem.text === localItem.text &&
-        cloudItem.author === localItem.author
-      );
-
-      if (!alreadyExists) {
-        combined.push({
-          text: localItem.text,
-          author: localItem.author || "You",
-          created_at: localItem.date
-        });
-      }
-    });
-
-    combined.sort((a, b) => {
-      return new Date(b.created_at || b.date || 0) -
-        new Date(a.created_at || a.date || 0);
-    });
-
-    if (!combined.length) {
-      communityWall.appendChild(
-        createElement(
-          "p",
-          "muted",
-          "The community is waiting for its first thought."
-        )
-      );
-      return;
-    }
-
-    combined.slice(0, 30).forEach(item => {
-      const author = item.author || "Everyday member";
-
-      addWallItem(
-        item.text,
-        author.charAt(0).toUpperCase(),
-        author,
-        item.created_at || item.date
-      );
-    });
-  }
-
-  // =====================================
-  // INITIAL COMMUNITY CONTENT
-  // =====================================
-
-  renderLocalThoughts();
 
   // =====================================
   // PWA INSTALLATION
@@ -1997,14 +1750,34 @@
   const pageLinks = document.querySelectorAll("[data-page-link]");
   const pageViews = document.querySelectorAll("[data-page]");
 
-  function showPage(pageName, updateAddress = true) {
-    const availablePages = ["discover", "explore", "community", "my-space"];
+  // The visible navigation labels can differ from
+  // the internal page names used by existing scripts.
+  const pageAliases = {
+    play: "explore",
+    connect: "community"
+  };
+
+  const availablePages = [
+    "discover",
+    "explore",
+    "learn",
+    "community",
+    "create",
+    "my-space"
+  ];
+
+  function normalizePageName(pageName) {
+    return pageAliases[pageName] || pageName;
+  }
+
+  function showPage(requestedPage, updateAddress = true) {
+    let pageName = normalizePageName(requestedPage);
 
     if (!availablePages.includes(pageName)) {
       pageName = "discover";
     }
 
-    // Show only the selected page.
+    // Show the selected page.
     pageViews.forEach(page => {
       const isSelected = page.dataset.page === pageName;
 
@@ -2012,9 +1785,13 @@
       page.hidden = !isSelected;
     });
 
-    // Update the navigation appearance.
+    // Update navigation selection.
     pageLinks.forEach(link => {
-      const isSelected = link.dataset.pageLink === pageName;
+      const linkPage = normalizePageName(
+        link.dataset.pageLink
+      );
+
+      const isSelected = linkPage === pageName;
 
       if (isSelected) {
         link.setAttribute("aria-current", "page");
@@ -2023,16 +1800,19 @@
       }
     });
 
-    // Keep the selected page reflected in the URL.
+    // Update the URL using the internal page name.
     if (updateAddress) {
       const newHash = "#" + pageName;
 
       if (window.location.hash !== newHash) {
-        history.pushState({ page: pageName }, "", newHash);
+        history.pushState(
+          { page: pageName },
+          "",
+          newHash
+        );
       }
     }
 
-    // Keep the page at the top after changing tabs.
     window.scrollTo({
       top: 0,
       behavior: "smooth"
@@ -2048,26 +1828,17 @@
     });
   });
 
-  // Browser back and forward buttons.
+  // Browser back and forward.
   window.addEventListener("popstate", () => {
     const pageName = window.location.hash.replace("#", "");
 
     showPage(pageName || "discover", false);
   });
 
-  // Direct links and initial page loading.
+  // Direct links and initial page.
   const initialPage = window.location.hash.replace("#", "");
 
   showPage(initialPage || "discover", false);
-
-  // Keep the secondary activity counter synchronized.
-  function updateExploreCompletedCount() {
-    const counter = $("exploreCompletedCount");
-
-    if (counter) {
-      counter.textContent = completed;
-    }
-  }
 
   updateExploreCompletedCount();
 
