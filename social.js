@@ -1,4 +1,3 @@
-
 (() => {
   "use strict";
 
@@ -17,7 +16,7 @@
 
   const LOCAL_KEY = "everyday_local_social_posts";
   const MAX_POST_LENGTH = 1000;
-  const MAX_FEED_POSTS = 100;
+  const MAX_FEED_POSTS = 500;
 
   let currentUser = null;
   let currentProfile = null;
@@ -25,6 +24,7 @@
   let followRelationships = [];
   let incomingRequests = [];
   let searchTimer = null;
+  let searchRequestNumber = 0;
 
   // =========================================
   // HELPERS
@@ -52,14 +52,26 @@
         localStorage.getItem(LOCAL_KEY) || "[]"
       );
 
-      return Array.isArray(stored) ? stored : [];
-    } catch {
+      if (!Array.isArray(stored)) return [];
+
+      return stored.map((post) => ({
+        ...post,
+        local: true
+      }));
+    } catch (error) {
+      console.error("EVERYDAY local posts:", error);
       return [];
     }
   }
 
   function saveLocalPosts(posts) {
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(posts));
+    try {
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(posts));
+      return true;
+    } catch (error) {
+      console.error("EVERYDAY could not save local posts:", error);
+      return false;
+    }
   }
 
   function formatDate(value) {
@@ -103,6 +115,39 @@
     return followRelationships.find(
       (relationship) =>
         relationship.following_id === userId
+    );
+  }
+
+  function getFollowButtonLabel(relationship) {
+    if (!relationship) return "Follow";
+
+    return relationship.status === "pending"
+      ? "Cancel request"
+      : "Unfollow";
+  }
+
+  function mergePosts(serverPosts, localPosts) {
+    const merged = new Map();
+
+    (serverPosts || []).forEach((post) => {
+      merged.set(post.id, {
+        ...post,
+        local: false
+      });
+    });
+
+    (localPosts || []).forEach((post) => {
+      if (!merged.has(post.id)) {
+        merged.set(post.id, {
+          ...post,
+          local: true
+        });
+      }
+    });
+
+    return Array.from(merged.values()).sort(
+      (a, b) =>
+        new Date(b.created_at) - new Date(a.created_at)
     );
   }
 
@@ -164,43 +209,47 @@
     textarea.placeholder = "Write something worth sharing...";
     textarea.required = true;
 
-    const formFooter = createElement("div", "social-compose-footer");
+    const formFooter = createElement(
+      "div",
+      "social-compose-footer"
+    );
 
     const characterCount = createElement(
-  "span",
-  "social-character-count",
-  `0 / ${MAX_POST_LENGTH}`
-);
+      "span",
+      "social-character-count",
+      `0 / ${MAX_POST_LENGTH}`
+    );
 
-characterCount.id = "socialCharacterCount";
+    characterCount.id = "socialCharacterCount";
 
-// Add visible space after the character counter
-characterCount.style.marginRight = "30px";
-characterCount.style.flexShrink = "0";
+    // Preserve the character counter spacing.
+    characterCount.style.marginRight = "30px";
+    characterCount.style.flexShrink = "0";
 
-const submitButton = createElement(
-  "button",
-  "primary-button",
-  "Save thought"
-);
+    const submitButton = createElement(
+      "button",
+      "primary-button",
+      "Save thought"
+    );
 
-submitButton.type = "submit";
-submitButton.style.marginLeft = "0";
-submitButton.style.flexShrink = "0";
+    submitButton.type = "submit";
+    submitButton.style.marginLeft = "0";
+    submitButton.style.flexShrink = "0";
 
-formFooter.style.display = "flex";
-formFooter.style.alignItems = "center";
-formFooter.style.justifyContent = "flex-start";
-formFooter.style.gap = "0";
+    formFooter.style.display = "flex";
+    formFooter.style.alignItems = "center";
+    formFooter.style.justifyContent = "flex-start";
+    formFooter.style.gap = "0";
 
-formFooter.append(characterCount, submitButton);
-form.append(textarea, formFooter);
+    formFooter.append(characterCount, submitButton);
+    form.append(textarea, formFooter);
 
     const signInNotice = createElement(
       "p",
       "social-notice",
       "You're in Guest Mode. Your thoughts will be saved on this device. Sign in to join conversations with other members."
     );
+
     signInNotice.id = "socialGuestNotice";
 
     composer.append(
@@ -221,6 +270,7 @@ form.append(textarea, formFooter);
     );
 
     const feedHeadingCopy = createElement("div");
+
     feedHeadingCopy.append(
       createElement("p", "eyebrow", "OPEN CONVERSATIONS"),
       createElement("h2", "", "From the community")
@@ -231,6 +281,7 @@ form.append(textarea, formFooter);
       "text-button",
       "Refresh"
     );
+
     refreshButton.type = "button";
     refreshButton.id = "socialRefreshButton";
 
@@ -241,6 +292,7 @@ form.append(textarea, formFooter);
       "social-status",
       "Loading community thoughts..."
     );
+
     feedStatus.id = "socialFeedStatus";
     feedStatus.setAttribute("aria-live", "polite");
 
@@ -261,17 +313,14 @@ form.append(textarea, formFooter);
       communityPage.append(root);
     }
 
-    // Character count
     textarea.addEventListener("input", () => {
       characterCount.textContent =
         `${textarea.value.length} / ${MAX_POST_LENGTH}`;
     });
 
     form.addEventListener("submit", handleNewPost);
-
     refreshButton.addEventListener("click", loadFeed);
 
-    // Keep the old community UI out of the way.
     if (oldCommunityPost) {
       oldCommunityPost.hidden = true;
     }
@@ -292,6 +341,7 @@ form.append(textarea, formFooter);
       "div",
       "social-privacy-settings"
     );
+
     settings.id = "everydayPrivacySettings";
 
     settings.append(
@@ -327,6 +377,7 @@ form.append(textarea, formFooter);
       "secondary-button",
       "Save privacy"
     );
+
     saveButton.type = "button";
     saveButton.id = "saveSocialPrivacy";
 
@@ -335,12 +386,10 @@ form.append(textarea, formFooter);
     status.setAttribute("aria-live", "polite");
 
     settings.append(label, select, saveButton, status);
-
     profileEditor.append(settings);
 
     saveButton.addEventListener("click", saveProfilePrivacy);
 
-    // Add discovery and follow requests to My Space.
     buildMemberDiscovery();
   }
 
@@ -357,9 +406,14 @@ form.append(textarea, formFooter);
       "section",
       "my-space-card social-member-section"
     );
+
     section.id = "everydayMemberDiscovery";
 
-    const heading = createElement("div", "social-section-heading");
+    const heading = createElement(
+      "div",
+      "social-section-heading"
+    );
+
     const headingCopy = createElement("div");
 
     headingCopy.append(
@@ -386,12 +440,14 @@ form.append(textarea, formFooter);
       "div",
       "social-member-results"
     );
+
     searchResults.id = "socialMemberResults";
 
     const requestHeading = createElement(
       "div",
       "social-request-heading"
     );
+
     requestHeading.append(
       createElement("p", "eyebrow", "YOUR COMMUNITY"),
       createElement("h3", "", "Follow requests")
@@ -401,6 +457,7 @@ form.append(textarea, formFooter);
       "div",
       "social-request-list"
     );
+
     requests.id = "socialIncomingRequests";
 
     section.append(
@@ -437,7 +494,11 @@ form.append(textarea, formFooter);
     const { data, error } = await supabase.auth.getSession();
 
     if (error) {
-      console.error("EVERYDAY Social session:", error.message);
+      console.error(
+        "EVERYDAY Social session:",
+        error.message
+      );
+
       return null;
     }
 
@@ -449,6 +510,7 @@ form.append(textarea, formFooter);
 
     const guestNotice = byId("socialGuestNotice");
     const composeInput = byId("socialComposeInput");
+
     const submitButton = document.querySelector(
       "#socialComposeForm button[type='submit']"
     );
@@ -476,6 +538,7 @@ form.append(textarea, formFooter);
 
       await loadFeed();
       renderIncomingRequests();
+
       return;
     }
 
@@ -486,8 +549,9 @@ form.append(textarea, formFooter);
     ]);
 
     await loadFeed();
+
     updatePrivacyControl();
-    renderIncomingRequests();
+    await renderIncomingRequests();
   }
 
   // =========================================
@@ -504,7 +568,11 @@ form.append(textarea, formFooter);
       .maybeSingle();
 
     if (error) {
-      console.error("EVERYDAY Social profile:", error.message);
+      console.error(
+        "EVERYDAY Social profile:",
+        error.message
+      );
+
       return;
     }
 
@@ -535,6 +603,7 @@ form.append(textarea, formFooter);
         "Please sign in to change profile privacy.",
         true
       );
+
       return;
     }
 
@@ -576,7 +645,8 @@ form.append(textarea, formFooter);
 
     await loadCurrentProfile();
     await loadIncomingRequests();
-    renderIncomingRequests();
+
+    await renderIncomingRequests();
   }
 
   // =========================================
@@ -597,6 +667,7 @@ form.append(textarea, formFooter);
         "Your thought is too long.",
         true
       );
+
       return;
     }
 
@@ -623,15 +694,22 @@ form.append(textarea, formFooter);
           local: true
         });
 
-        saveLocalPosts(posts);
+        if (!saveLocalPosts(posts)) {
+          throw new Error(
+            "Your thought could not be saved on this device."
+          );
+        }
+
         input.value = "";
 
         const count = byId("socialCharacterCount");
+
         if (count) {
           count.textContent = `0 / ${MAX_POST_LENGTH}`;
         }
 
         await loadFeed();
+
         return;
       }
 
@@ -649,6 +727,7 @@ form.append(textarea, formFooter);
       input.value = "";
 
       const count = byId("socialCharacterCount");
+
       if (count) {
         count.textContent = `0 / ${MAX_POST_LENGTH}`;
       }
@@ -661,9 +740,11 @@ form.append(textarea, formFooter);
         error.message || "Your thought could not be shared.",
         true
       );
+
     } finally {
       if (submitButton) {
         submitButton.disabled = false;
+
         submitButton.textContent = currentUser
           ? "Share thought"
           : "Save thought";
@@ -681,9 +762,12 @@ form.append(textarea, formFooter);
 
     setStatus(status, "Loading community thoughts...");
 
+    const localPosts = getLocalPosts();
+
     if (!currentUser) {
-      feedPosts = getLocalPosts();
+      feedPosts = localPosts;
       renderFeed();
+
       return;
     }
 
@@ -699,13 +783,24 @@ form.append(textarea, formFooter);
         "We couldn't load the community right now. Please try again.",
         true
       );
-      console.error("EVERYDAY Social feed:", error.message);
+
+      console.error(
+        "EVERYDAY Social feed:",
+        error.message
+      );
+
+      // Still show locally saved guest posts if the
+      // community feed cannot be loaded.
+      feedPosts = localPosts;
+      renderFeed();
+
       return;
     }
 
-    feedPosts = data || [];
+    // Keep guest posts visible on this device after login.
+    // These posts remain local and are not uploaded to Supabase.
+    feedPosts = mergePosts(data || [], localPosts);
 
-    // Keep locally saved guest posts visible on this device.
     renderFeed();
   }
 
@@ -731,6 +826,7 @@ form.append(textarea, formFooter);
           ? "No thoughts here yet. Be the first to start a conversation."
           : "No local thoughts yet. Share the first one."
       );
+
       return;
     }
 
@@ -744,10 +840,15 @@ form.append(textarea, formFooter);
   function renderPost(post, depth) {
     const wrapper = createElement(
       "article",
-      depth > 0 ? "social-post social-reply" : "social-post"
+      depth > 0
+        ? "social-post social-reply"
+        : "social-post"
     );
 
-    const header = createElement("div", "social-post-header");
+    const header = createElement(
+      "div",
+      "social-post-header"
+    );
 
     const avatar = createElement(
       "div",
@@ -781,17 +882,33 @@ form.append(textarea, formFooter);
       post.text
     );
 
-    const actions = createElement("div", "social-post-actions");
-
-    const replyButton = createElement(
-      "button",
-      "text-button",
-      "Reply"
+    const actions = createElement(
+      "div",
+      "social-post-actions"
     );
-    replyButton.type = "button";
-    replyButton.dataset.replyTo = post.id;
 
-    actions.append(replyButton);
+    // Guest posts exist only in local storage.
+    // They cannot be used as Supabase reply parents.
+    if (!post.local) {
+      const replyButton = createElement(
+        "button",
+        "text-button",
+        "Reply"
+      );
+
+      replyButton.type = "button";
+      replyButton.dataset.replyTo = post.id;
+
+      actions.append(replyButton);
+    } else {
+      actions.append(
+        createElement(
+          "span",
+          "social-local-label",
+          "Saved on this device"
+        )
+      );
+    }
 
     const children = feedPosts
       .filter((item) => item.parent_id === post.id)
@@ -800,48 +917,51 @@ form.append(textarea, formFooter);
           new Date(a.created_at) - new Date(b.created_at)
       );
 
-    const replyForm = createElement(
-      "form",
-      "social-reply-form"
-    );
-
-    replyForm.dataset.parentId = post.id;
-
-    const replyInput = document.createElement("input");
-    replyInput.type = "text";
-    replyInput.maxLength = MAX_POST_LENGTH;
-    replyInput.placeholder = "Write a reply...";
-    replyInput.required = true;
-    replyInput.setAttribute(
-      "aria-label",
-      `Reply to ${post.author || "this thought"}`
-    );
-
-    const replySubmit = createElement(
-      "button",
-      "secondary-button",
-      "Send"
-    );
-    replySubmit.type = "submit";
-
-    replyForm.append(replyInput, replySubmit);
-
     const childContainer = createElement(
       "div",
       "social-replies"
     );
 
+    // Only server posts can receive replies.
+    if (!post.local && depth < 4) {
+      const replyForm = createElement(
+        "form",
+        "social-reply-form"
+      );
+
+      replyForm.dataset.parentId = post.id;
+
+      const replyInput = document.createElement("input");
+      replyInput.type = "text";
+      replyInput.maxLength = MAX_POST_LENGTH;
+      replyInput.placeholder = "Write a reply...";
+      replyInput.required = true;
+
+      replyInput.setAttribute(
+        "aria-label",
+        `Reply to ${post.author || "this thought"}`
+      );
+
+      const replySubmit = createElement(
+        "button",
+        "secondary-button",
+        "Send"
+      );
+
+      replySubmit.type = "submit";
+
+      replyForm.append(replyInput, replySubmit);
+
+      wrapper.append(header, content, actions, replyForm);
+    } else {
+      wrapper.append(header, content, actions);
+    }
+
     children.forEach((child) => {
       childContainer.append(
-        renderPost(child, Math.min(depth + 1, 4))
+        renderPost(child, depth + 1)
       );
     });
-
-    wrapper.append(header, content, actions);
-
-    if (depth < 4) {
-      wrapper.append(replyForm);
-    }
 
     if (children.length) {
       wrapper.append(childContainer);
@@ -867,6 +987,7 @@ form.append(textarea, formFooter);
         "Sign in to reply to community conversations.",
         true
       );
+
       return;
     }
 
@@ -877,21 +998,27 @@ form.append(textarea, formFooter);
     if (!text || !parentId) return;
 
     const button = form.querySelector("button");
+
     if (button) {
       button.disabled = true;
       button.textContent = "Sending...";
     }
 
-    const { error } = await supabase
-      .from("community_thoughts")
-      .insert({
-        user_id: currentUser.id,
-        text,
-        author: getNickname(),
-        parent_id: parentId
-      });
+    try {
+      const { error } = await supabase
+        .from("community_thoughts")
+        .insert({
+          user_id: currentUser.id,
+          text,
+          author: getNickname(),
+          parent_id: parentId
+        });
 
-    if (error) {
+      if (error) throw error;
+
+      await loadFeed();
+
+    } catch (error) {
       setStatus(
         byId("socialFeedStatus"),
         error.message || "Your reply could not be sent.",
@@ -902,11 +1029,7 @@ form.append(textarea, formFooter);
         button.disabled = false;
         button.textContent = "Send";
       }
-
-      return;
     }
-
-    await loadFeed();
   }
 
   // =========================================
@@ -918,6 +1041,8 @@ form.append(textarea, formFooter);
 
     if (!results) return;
 
+    const requestNumber = ++searchRequestNumber;
+
     results.replaceChildren();
 
     if (!currentUser) {
@@ -928,6 +1053,7 @@ form.append(textarea, formFooter);
           "Sign in to discover and follow other members."
         )
       );
+
       return;
     }
 
@@ -941,6 +1067,7 @@ form.append(textarea, formFooter);
           "Enter at least two characters to search."
         )
       );
+
       return;
     }
 
@@ -955,6 +1082,9 @@ form.append(textarea, formFooter);
       .neq("id", currentUser.id)
       .limit(20);
 
+    // Ignore older searches that finish after a newer one.
+    if (requestNumber !== searchRequestNumber) return;
+
     results.replaceChildren();
 
     if (error) {
@@ -965,7 +1095,12 @@ form.append(textarea, formFooter);
           "We couldn't search members right now."
         )
       );
-      console.error("EVERYDAY member search:", error.message);
+
+      console.error(
+        "EVERYDAY member search:",
+        error.message
+      );
+
       return;
     }
 
@@ -977,6 +1112,7 @@ form.append(textarea, formFooter);
           "No members found with that nickname."
         )
       );
+
       return;
     }
 
@@ -986,7 +1122,10 @@ form.append(textarea, formFooter);
   }
 
   function renderMember(profile) {
-    const row = createElement("div", "social-member-row");
+    const row = createElement(
+      "div",
+      "social-member-row"
+    );
 
     const avatar = createElement(
       "div",
@@ -1008,7 +1147,9 @@ form.append(textarea, formFooter);
       createElement(
         "span",
         "",
-        profile.is_private ? "Private profile" : "Public profile"
+        profile.is_private
+          ? "Private profile"
+          : "Public profile"
       )
     );
 
@@ -1017,15 +1158,11 @@ form.append(textarea, formFooter);
     const button = createElement(
       "button",
       "secondary-button social-follow-button",
-      relationship
-        ? relationship.status === "accepted"
-          ? "Following"
-          : "Requested"
-        : "Follow"
+      getFollowButtonLabel(relationship)
     );
 
     button.type = "button";
-    button.disabled = Boolean(relationship);
+    button.disabled = false;
     button.dataset.followUser = profile.id;
 
     row.append(avatar, details, button);
@@ -1034,11 +1171,14 @@ form.append(textarea, formFooter);
   }
 
   // =========================================
-  // FOLLOWING
+  // FOLLOWING / UNFOLLOWING
   // =========================================
 
   async function loadFollowRelationships() {
-    if (!currentUser) return;
+    if (!currentUser) {
+      followRelationships = [];
+      return;
+    }
 
     const { data, error } = await supabase
       .from("user_follows")
@@ -1046,7 +1186,11 @@ form.append(textarea, formFooter);
       .eq("follower_id", currentUser.id);
 
     if (error) {
-      console.error("EVERYDAY follows:", error.message);
+      console.error(
+        "EVERYDAY follows:",
+        error.message
+      );
+
       return;
     }
 
@@ -1054,41 +1198,73 @@ form.append(textarea, formFooter);
   }
 
   async function followMember(userId, button) {
-    if (!currentUser) return;
-
-    button.disabled = true;
-    button.textContent = "Following...";
-
-    const { error } = await supabase
-      .from("user_follows")
-      .insert({
-        follower_id: currentUser.id,
-        following_id: userId
-      });
-
-    if (error) {
-      button.disabled = false;
-      button.textContent = "Follow";
-
-      setStatus(
-        byId("socialPrivacyStatus"),
-        error.message || "We couldn't follow this member.",
-        true
-      );
-
-      return;
-    }
-
-    await loadFollowRelationships();
+    if (!currentUser || !userId || !button) return;
 
     const relationship = getFollowRelationship(userId);
 
-    button.textContent =
-      relationship?.status === "pending"
-        ? "Requested"
-        : "Following";
-
     button.disabled = true;
+
+    try {
+      if (relationship) {
+        button.textContent = "Updating...";
+
+        // Remove an existing accepted follow or
+        // cancel a pending follow request.
+        const { error } = await supabase
+          .from("user_follows")
+          .delete()
+          .eq("id", relationship.id)
+          .eq("follower_id", currentUser.id);
+
+        if (error) throw error;
+
+        await loadFollowRelationships();
+
+        button.textContent = "Follow";
+        button.disabled = false;
+
+        return;
+      }
+
+      button.textContent = "Following...";
+
+      const { error } = await supabase
+        .from("user_follows")
+        .insert({
+          follower_id: currentUser.id,
+          following_id: userId
+        });
+
+      if (error) throw error;
+
+      await loadFollowRelationships();
+
+      const updatedRelationship =
+        getFollowRelationship(userId);
+
+      button.textContent =
+        getFollowButtonLabel(updatedRelationship);
+
+      button.disabled = false;
+
+    } catch (error) {
+      console.error(
+        "EVERYDAY follow action:",
+        error.message
+      );
+
+      button.textContent = relationship
+        ? getFollowButtonLabel(relationship)
+        : "Follow";
+
+      button.disabled = false;
+
+      setStatus(
+        byId("socialPrivacyStatus"),
+        error.message || "We couldn't update this follow.",
+        true
+      );
+    }
   }
 
   // =========================================
@@ -1108,12 +1284,48 @@ form.append(textarea, formFooter);
       .eq("status", "pending");
 
     if (error) {
-      console.error("EVERYDAY follow requests:", error.message);
+      console.error(
+        "EVERYDAY follow requests:",
+        error.message
+      );
+
       incomingRequests = [];
       return;
     }
 
     incomingRequests = data || [];
+  }
+
+  async function getRequestProfiles(requests) {
+    const userIds = [
+      ...new Set(
+        requests.map((request) => request.follower_id)
+      )
+    ];
+
+    if (!userIds.length) return {};
+
+    const { data, error } = await supabase
+      .from("user_profiles")
+      .select("id,nickname")
+      .in("id", userIds);
+
+    if (error) {
+      console.error(
+        "EVERYDAY request profiles:",
+        error.message
+      );
+
+      return {};
+    }
+
+    const profiles = {};
+
+    (data || []).forEach((profile) => {
+      profiles[profile.id] = profile;
+    });
+
+    return profiles;
   }
 
   async function renderIncomingRequests() {
@@ -1131,6 +1343,7 @@ form.append(textarea, formFooter);
           "Sign in to receive and manage follow requests."
         )
       );
+
       return;
     }
 
@@ -1142,8 +1355,14 @@ form.append(textarea, formFooter);
           "You don't have any pending follow requests."
         )
       );
+
       return;
     }
+
+    const profiles = await getRequestProfiles(incomingRequests);
+
+    // A newer request list may have replaced this one.
+    if (!container.isConnected) return;
 
     for (const request of incomingRequests) {
       const row = createElement(
@@ -1156,16 +1375,17 @@ form.append(textarea, formFooter);
         "social-member-details"
       );
 
+      const requester = profiles[request.follower_id];
+
+      const nickname =
+        requester?.nickname || "Everyday member";
+
       details.append(
-        createElement(
-          "strong",
-          "",
-          "Someone would like to follow you"
-        ),
+        createElement("strong", "", nickname),
         createElement(
           "span",
           "",
-          "Review this request below."
+          "Would like to follow you."
         )
       );
 
@@ -1208,12 +1428,22 @@ form.append(textarea, formFooter);
       .eq("status", "pending");
 
     if (error) {
-      console.error("EVERYDAY approve request:", error.message);
+      console.error(
+        "EVERYDAY approve request:",
+        error.message
+      );
+
+      setStatus(
+        byId("socialPrivacyStatus"),
+        "We couldn't approve this request.",
+        true
+      );
+
       return;
     }
 
     await loadIncomingRequests();
-    renderIncomingRequests();
+    await renderIncomingRequests();
   }
 
   async function declineRequest(requestId) {
@@ -1224,12 +1454,22 @@ form.append(textarea, formFooter);
       .eq("following_id", currentUser.id);
 
     if (error) {
-      console.error("EVERYDAY decline request:", error.message);
+      console.error(
+        "EVERYDAY decline request:",
+        error.message
+      );
+
+      setStatus(
+        byId("socialPrivacyStatus"),
+        "We couldn't decline this request.",
+        true
+      );
+
       return;
     }
 
     await loadIncomingRequests();
-    renderIncomingRequests();
+    await renderIncomingRequests();
   }
 
   // =========================================
@@ -1237,13 +1477,20 @@ form.append(textarea, formFooter);
   // =========================================
 
   document.addEventListener("submit", (event) => {
-    if (event.target.matches(".social-reply-form")) {
+    if (
+      event.target instanceof Element &&
+      event.target.matches(".social-reply-form")
+    ) {
       handleReply(event);
     }
   });
 
   document.addEventListener("click", (event) => {
-    const replyButton = event.target.closest("[data-reply-to]");
+    if (!(event.target instanceof Element)) return;
+
+    const replyButton = event.target.closest(
+      "[data-reply-to]"
+    );
 
     if (replyButton) {
       const post = replyButton.closest(".social-post");
@@ -1256,6 +1503,7 @@ form.append(textarea, formFooter);
           "Sign in to reply to community conversations.",
           true
         );
+
         return;
       }
 
@@ -1276,6 +1524,7 @@ form.append(textarea, formFooter);
         followButton.dataset.followUser,
         followButton
       );
+
       return;
     }
 
@@ -1284,7 +1533,10 @@ form.append(textarea, formFooter);
     );
 
     if (approveButton) {
-      approveRequest(approveButton.dataset.approveRequest);
+      approveRequest(
+        approveButton.dataset.approveRequest
+      );
+
       return;
     }
 
@@ -1293,7 +1545,9 @@ form.append(textarea, formFooter);
     );
 
     if (declineButton) {
-      declineRequest(declineButton.dataset.declineRequest);
+      declineRequest(
+        declineButton.dataset.declineRequest
+      );
     }
   });
 
@@ -1310,7 +1564,8 @@ form.append(textarea, formFooter);
     await handleAuthChange(session);
 
     supabase.auth.onAuthStateChange((event, session) => {
-      // Avoid doing additional Supabase work inside the auth callback.
+      // Avoid additional Supabase work inside
+      // the authentication callback itself.
       setTimeout(() => {
         handleAuthChange(session);
       }, 0);
