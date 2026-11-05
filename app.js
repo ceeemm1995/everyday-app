@@ -1742,7 +1742,7 @@
       installBtn.hidden = true;
     });
   }
-
+  
   // =====================================
   // PAGE NAVIGATION
   // =====================================
@@ -1750,8 +1750,6 @@
   const pageLinks = document.querySelectorAll("[data-page-link]");
   const pageViews = document.querySelectorAll("[data-page]");
 
-  // The visible navigation labels can differ from
-  // the internal page names used by existing scripts.
   const pageAliases = {
     play: "explore",
     connect: "community"
@@ -1767,7 +1765,11 @@
   ];
 
   function normalizePageName(pageName) {
-    return pageAliases[pageName] || pageName;
+    const normalized = String(pageName || "")
+      .trim()
+      .toLowerCase();
+
+    return pageAliases[normalized] || normalized;
   }
 
   function showPage(requestedPage, updateAddress = true) {
@@ -1777,21 +1779,24 @@
       pageName = "discover";
     }
 
-    // Show the selected page.
+    // Show only the selected page.
     pageViews.forEach(page => {
       const isSelected = page.dataset.page === pageName;
 
-      page.classList.toggle("is-active", isSelected);
       page.hidden = !isSelected;
+      page.classList.toggle("is-active", isSelected);
     });
 
-    // Update navigation selection.
+    // Keep navigation highlight synchronized.
     pageLinks.forEach(link => {
       const linkPage = normalizePageName(
         link.dataset.pageLink
       );
 
       const isSelected = linkPage === pageName;
+
+      link.classList.toggle("active", isSelected);
+      link.classList.toggle("is-active", isSelected);
 
       if (isSelected) {
         link.setAttribute("aria-current", "page");
@@ -1800,7 +1805,7 @@
       }
     });
 
-    // Update the URL using the internal page name.
+    // Update browser address.
     if (updateAddress) {
       const newHash = "#" + pageName;
 
@@ -1835,7 +1840,7 @@
     showPage(pageName || "discover", false);
   });
 
-  // Direct links and initial page.
+  // Initial page and direct links.
   const initialPage = window.location.hash.replace("#", "");
 
   showPage(initialPage || "discover", false);
