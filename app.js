@@ -1742,25 +1742,27 @@
       installBtn.hidden = true;
     });
   }
-  
+
   // =====================================
   // PAGE NAVIGATION
+  // EVERYDAY — THREE MAIN SECTIONS
   // =====================================
 
   const pageLinks = document.querySelectorAll("[data-page-link]");
-  const pageViews = document.querySelectorAll("[data-page]");
+  const pageViews = document.querySelectorAll(".page-view[data-page]");
 
+  // Old page names are redirected to their new destinations.
   const pageAliases = {
+    discover: "explore",
     play: "explore",
+    learn: "explore",
+    create: "explore",
     connect: "community"
   };
 
   const availablePages = [
-    "discover",
-    "explore",
-    "learn",
     "community",
-    "create",
+    "explore",
     "my-space"
   ];
 
@@ -1776,7 +1778,7 @@
     let pageName = normalizePageName(requestedPage);
 
     if (!availablePages.includes(pageName)) {
-      pageName = "discover";
+      pageName = "community";
     }
 
     // Show only the selected page.
@@ -1787,7 +1789,7 @@
       page.classList.toggle("is-active", isSelected);
     });
 
-    // Keep navigation highlight synchronized.
+    // Update navigation highlights.
     pageLinks.forEach(link => {
       const linkPage = normalizePageName(
         link.dataset.pageLink
@@ -1824,26 +1826,38 @@
     });
   }
 
-  // Navigation clicks.
-  pageLinks.forEach(link => {
-    link.addEventListener("click", event => {
-      event.preventDefault();
+  // Handle navigation links and in-page links.
+  // This also supports links from Connect, Explore, and My Space.
+  document.addEventListener("click", event => {
+    const link = event.target.closest("a[href^='#']");
 
-      showPage(link.dataset.pageLink);
-    });
+    if (!link) return;
+
+    const hash = link.getAttribute("href").slice(1);
+
+    if (!hash) return;
+
+    const pageName = normalizePageName(hash);
+
+    if (!availablePages.includes(pageName)) return;
+
+    event.preventDefault();
+
+    showPage(pageName);
   });
 
   // Browser back and forward.
   window.addEventListener("popstate", () => {
     const pageName = window.location.hash.replace("#", "");
 
-    showPage(pageName || "discover", false);
+    showPage(pageName || "community", false);
   });
 
-  // Initial page and direct links.
+  // Open Connect by default.
+  // Old bookmarks are redirected to the new sections.
   const initialPage = window.location.hash.replace("#", "");
 
-  showPage(initialPage || "discover", false);
+  showPage(initialPage || "community", false);
 
   updateExploreCompletedCount();
 
