@@ -165,8 +165,27 @@
   const logoutBtn = $("logoutBtn");
   const streakNotice = $("streakNotice");
 
-  const magicLinkForm = $("magicLinkForm");
+  // Authentication form elements
+  const authForm = $("authForm");
   const authEmailInput = $("authEmailInput");
+  const authPasswordInput = $("authPasswordInput");
+  const authConfirmPasswordInput = $("authConfirmPasswordInput");
+
+  const authPasswordGroup = $("authPasswordGroup");
+  const authConfirmPasswordGroup = $("authConfirmPasswordGroup");
+
+  const authSubmitButton = $("authSubmitButton");
+  const forgotPasswordButton = $("forgotPasswordButton");
+
+  const authHeading = $("authHeading");
+  const authDescription = $("authDescription");
+  const authStatusMessage = $("authStatusMessage");
+
+  const showSignInModeBtn = $("showSignInMode");
+  const showSignUpModeBtn = $("showSignUpMode");
+
+  let authMode = "signin";
+  let isPasswordRecovery = false;
 
   // =====================================
   // ACTIVITIES
@@ -369,18 +388,118 @@
   // AUTHENTICATION
   // =====================================
 
-  async function checkSession() {
-    try {
-      const {
-        data: { session },
-        error
-      } = await supabase.auth.getSession();
+  function setAuthMode(mode) {
+    const allowedModes = [
+      "signin",
+      "signup",
+      "recovery",
+      "newpassword"
+    ];
 
-      if (error) throw error;
+    if (!allowedModes.includes(mode)) return;
 
-      updateAuthUI(session);
-    } catch (error) {
-      console.error("Session error:", error);
+    authMode = mode;
+
+    const isSignIn = mode === "signin";
+    const isSignUp = mode === "signup";
+    const isRecovery = mode === "recovery";
+    const isNewPassword = mode === "newpassword";
+
+    if (authHeading) {
+      const headings = {
+        signin: "Welcome back",
+        signup: "Create your account",
+        recovery: "Reset your password",
+        newpassword: "Choose a new password"
+      };
+
+      authHeading.textContent = headings[mode];
+    }
+
+    if (authDescription) {
+      const descriptions = {
+        signin: "Sign in to continue your everyday journey.",
+        signup: "Create an account to keep your progress synced.",
+        recovery: "Enter your email address to receive a password reset link.",
+        newpassword: "Choose a new password for your account."
+      };
+
+      authDescription.textContent = descriptions[mode];
+    }
+
+    if (authPasswordGroup) {
+      authPasswordGroup.hidden = isRecovery;
+    }
+
+    if (authConfirmPasswordGroup) {
+      authConfirmPasswordGroup.hidden =
+        !(isSignUp || isNewPassword);
+    }
+
+    if (authPasswordInput) {
+      authPasswordInput.disabled = isRecovery;
+      authPasswordInput.required =
+        isSignIn || isSignUp || isNewPassword;
+
+      authPasswordInput.autocomplete =
+        isSignIn ? "current-password" : "new-password";
+
+      authPasswordInput.value = "";
+    }
+
+    if (authConfirmPasswordInput) {
+      authConfirmPasswordInput.disabled =
+        !(isSignUp || isNewPassword);
+
+      authConfirmPasswordInput.required =
+        isSignUp || isNewPassword;
+
+      authConfirmPasswordInput.value = "";
+    }
+
+    if (authEmailInput) {
+      authEmailInput.disabled = isNewPassword;
+      authEmailInput.required = !isNewPassword;
+    }
+
+    if (showSignInModeBtn) {
+      showSignInModeBtn.hidden = isNewPassword;
+      showSignInModeBtn.textContent =
+        isRecovery ? "Back to Sign In" : "Sign In";
+
+      showSignInModeBtn.setAttribute(
+        "aria-pressed",
+        String(isSignIn)
+      );
+    }
+
+    if (showSignUpModeBtn) {
+      showSignUpModeBtn.hidden = isRecovery || isNewPassword;
+
+      showSignUpModeBtn.setAttribute(
+        "aria-pressed",
+        String(isSignUp)
+      );
+    }
+
+    if (forgotPasswordButton) {
+      forgotPasswordButton.hidden = !isSignIn;
+    }
+
+    if (authSubmitButton) {
+      const buttonLabels = {
+        signin: "Sign In",
+        signup: "Create Account",
+        recovery: "Send Reset Link",
+        newpassword: "Update Password"
+      };
+
+      authSubmitButton.textContent = buttonLabels[mode];
+    }
+
+    if (authStatusMessage) {
+      authStatusMessage.textContent = "";
+      authStatusMessage.style.display = "none";
     }
   }
 
@@ -416,7 +535,8 @@
           "Your everyday activity is synced to your account.";
       }
 
-      if (authModal?.open) {
+      // Keep the modal open while choosing a new password.
+      if (authModal?.open && !isPasswordRecovery) {
         authModal.close();
       }
 
@@ -451,12 +571,34 @@
   async function loadAccountData() {
     if (!currentUser) return;
 
-    await syncUserCloudData();
-    await loadProfile();
-    await loadJournalEntries();
-    await loadGoalCircles();
-    await loadSavedDiscoveries();
-    await migrateGuestDiscoveries();
+    const accountId = currentUser.id;
+
+    try {
+      await syncUserCloudData();
+
+      if (currentUser?.id !== accountId) return;
+
+      await loadProfile();
+
+      if (currentUser?.id !== accountId) return;
+
+      await loadJournalEntries();
+
+      if (currentUser?.id !== accountId) return;
+
+      await loadGoalCircles();
+
+      if (currentUser?.id !== accountId) return;
+
+      await loadSavedDiscoveries();
+
+      if (currentUser?.id !== accountId) return;
+
+      await migrateGuestDiscoveries();
+
+    } catch (error) {
+      console.error("Account data loading error:", error);
+    }
 
     // Connect is managed by social.js.
     // Do not load or render community posts here.
@@ -481,7 +623,8 @@
     const bioDisplay = $("profileDescription");
 
     if (bioDisplay) {
-      bioDisplay.textContent = "A little space to introduce yourself.";
+      bioDisplay.textContent =
+        "A little space to introduce yourself.";
     }
 
     currentNickname = "Everyday member";
@@ -554,6 +697,8 @@
     openAuthModalBtn.addEventListener("click", event => {
       event.preventDefault();
 
+      setAuthMode("signin");
+
       if (!authModal.open) {
         authModal.showModal();
       }
@@ -574,59 +719,231 @@
     });
   }
 
+  if (showSignInModeBtn) {
+    showSignInModeBtn.addEventListener("click", () => {
+      setAuthMode("signin");
+    });
+  }
+
+  if (showSignUpModeBtn) {
+    showSignUpModeBtn.addEventListener("click", () => {
+      setAuthMode("signup");
+    });
+  }
+
+  if (forgotPasswordButton) {
+    forgotPasswordButton.addEventListener("click", () => {
+      setAuthMode("recovery");
+    });
+  }
+
   // =====================================
-  // MAGIC LINK LOGIN
+  // EMAIL + PASSWORD AUTHENTICATION
   // =====================================
 
-  if (magicLinkForm) {
-    magicLinkForm.addEventListener("submit", async event => {
+  if (authForm) {
+    authForm.addEventListener("submit", async event => {
       event.preventDefault();
 
       const email = authEmailInput?.value.trim() || "";
+      const password = authPasswordInput?.value || "";
+      const confirmPassword =
+        authConfirmPasswordInput?.value || "";
 
-      if (!email) return;
-
-      showStatus(
-        "authStatusMessage",
-        "Sending magic link...",
-        "info"
-      );
-
-      const submitButton = magicLinkForm.querySelector(
-        'button[type="submit"]'
-      );
-
-      setButtonLoading(submitButton, true, "Sending...");
-
-      try {
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            emailRedirectTo: window.location.origin
-          }
-        });
-
-        if (error) throw error;
-
+      if (authMode !== "newpassword" && !email) {
         showStatus(
           "authStatusMessage",
-          "✨ Check your email! We sent you a magic login link.",
-          "success"
-        );
-
-        if (authEmailInput) {
-          authEmailInput.value = "";
-        }
-      } catch (error) {
-        console.error("Login error:", error);
-
-        showStatus(
-          "authStatusMessage",
-          "Error: " + error.message,
+          "Please enter your email address.",
           "error"
         );
+        return;
+      }
+
+      if (
+        authMode === "signin" ||
+        authMode === "signup" ||
+        authMode === "newpassword"
+      ) {
+        if (password.length < 6) {
+          showStatus(
+            "authStatusMessage",
+            "Your password must contain at least 6 characters.",
+            "error"
+          );
+          return;
+        }
+      }
+
+      if (
+        authMode === "signup" ||
+        authMode === "newpassword"
+      ) {
+        if (password !== confirmPassword) {
+          showStatus(
+            "authStatusMessage",
+            "Your passwords do not match.",
+            "error"
+          );
+          return;
+        }
+      }
+
+      setButtonLoading(
+        authSubmitButton,
+        true,
+        "Please wait..."
+      );
+
+      try {
+        // SIGN IN
+        if (authMode === "signin") {
+          showStatus(
+            "authStatusMessage",
+            "Signing you in...",
+            "info"
+          );
+
+          const { data, error } =
+            await supabase.auth.signInWithPassword({
+              email,
+              password
+            });
+
+          if (error) throw error;
+
+          if (data.session) {
+            updateAuthUI(data.session);
+
+            showStatus(
+              "authStatusMessage",
+              "Welcome back!",
+              "success"
+            );
+          }
+        }
+
+        // CREATE ACCOUNT
+        else if (authMode === "signup") {
+          showStatus(
+            "authStatusMessage",
+            "Creating your account...",
+            "info"
+          );
+
+          const { data, error } =
+            await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                emailRedirectTo: window.location.origin
+              }
+            });
+
+          if (error) throw error;
+
+          if (data.session) {
+            updateAuthUI(data.session);
+
+            showStatus(
+              "authStatusMessage",
+              "Your account has been created!",
+              "success"
+            );
+          } else {
+            showStatus(
+              "authStatusMessage",
+              "Your account request was received. Please check your email to confirm your account before signing in.",
+              "success"
+            );
+          }
+        }
+
+        // PASSWORD RESET EMAIL
+        else if (authMode === "recovery") {
+          showStatus(
+            "authStatusMessage",
+            "Sending your password reset request...",
+            "info"
+          );
+
+          const { error } =
+            await supabase.auth.resetPasswordForEmail(
+              email,
+              {
+                redirectTo: window.location.origin
+              }
+            );
+
+          if (error) throw error;
+
+          showStatus(
+            "authStatusMessage",
+            "If an account exists for that email, a password reset link will be sent. Please check your inbox and spam folder.",
+            "success"
+          );
+        }
+
+        // SET A NEW PASSWORD
+        else if (authMode === "newpassword") {
+          const { error } =
+            await supabase.auth.updateUser({
+              password
+            });
+
+          if (error) throw error;
+
+          isPasswordRecovery = false;
+
+          showStatus(
+            "authStatusMessage",
+            "Your password has been updated successfully.",
+            "success"
+          );
+
+          authModal?.close();
+
+          setAuthMode("signin");
+        }
+
+      } catch (error) {
+        console.error("Authentication error:", error);
+
+        let message =
+          error?.message || "Something went wrong. Please try again.";
+
+        if (
+          message.toLowerCase().includes("rate limit")
+        ) {
+          message =
+            "Email rate limit reached. Please wait before requesting another email.";
+        } else if (
+          message.toLowerCase().includes("invalid login credentials")
+        ) {
+          message =
+            "Incorrect email or password. Please try again.";
+        } else if (
+          message.toLowerCase().includes("email not confirmed")
+        ) {
+          message =
+            "Please confirm your email address before signing in.";
+        } else if (
+          message.toLowerCase().includes("user already registered")
+        ) {
+          message =
+            "An account with this email already exists. Please sign in instead.";
+        }
+
+        showStatus(
+          "authStatusMessage",
+          message,
+          "error"
+        );
+
       } finally {
-        setButtonLoading(submitButton, false);
+        setButtonLoading(
+          authSubmitButton,
+          false
+        );
       }
     });
   }
@@ -645,18 +962,47 @@
         if (error) throw error;
 
         window.location.reload();
+
       } catch (error) {
         console.error("Logout error:", error);
+
         logoutBtn.disabled = false;
+
+        showStatus(
+          "authStatusMessage",
+          "Could not sign out. Please try again.",
+          "error"
+        );
       }
     });
   }
 
+  // =====================================
+  // SHARED AUTHENTICATION LISTENER
+  // =====================================
+
   // APP.JS IS THE SINGLE AUTHENTICATION LISTENER.
   // It shares changes with social.js through a custom event.
+  // Supabase calls are deferred until after the callback returns.
 
-  supabase.auth.onAuthStateChange((_event, session) => {
-    updateAuthUI(session);
+  supabase.auth.onAuthStateChange((event, session) => {
+    Promise.resolve().then(() => {
+
+      if (event === "PASSWORD_RECOVERY") {
+        isPasswordRecovery = true;
+
+        setAuthMode("newpassword");
+
+        if (authModal && !authModal.open) {
+          authModal.showModal();
+        }
+      }
+
+      updateAuthUI(session);
+
+    }).catch(error => {
+      console.error("Authentication state error:", error);
+    });
   });
 
   // =====================================
@@ -1897,7 +2243,7 @@
   renderActivity();
   renderProfileIdentity();
 
-  checkSession();
+  // Supabase INITIAL_SESSION event handles session restoration.
 
   // =====================================
   // SERVICE WORKER
