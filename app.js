@@ -24,10 +24,22 @@
 
   const supabase = window.supabase.createClient(
     SUPABASE_URL,
-    SUPABASE_ANON_KEY
+    SUPABASE_ANON_KEY,
+    {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        storage: window.localStorage
+      }
+    }
   );
 
   window.everydaySupabase = supabase;
+
+  // Shared authentication state for social.js
+  window.everydayAuthReady = false;
+  window.everydayAuthSession = null;
 
   // =====================================
   // HELPERS
@@ -379,6 +391,18 @@
 
     currentUser = nextUser;
 
+    // Share authentication state with social.js.
+    window.everydayAuthSession = session || null;
+    window.everydayAuthReady = true;
+
+    window.dispatchEvent(
+      new CustomEvent("everyday:auth-change", {
+        detail: {
+          session: session || null
+        }
+      })
+    );
+
     if (currentUser) {
       if (guestView) guestView.style.display = "none";
       if (userView) userView.style.display = "flex";
@@ -627,6 +651,9 @@
       }
     });
   }
+
+  // APP.JS IS THE SINGLE AUTHENTICATION LISTENER.
+  // It shares changes with social.js through a custom event.
 
   supabase.auth.onAuthStateChange((_event, session) => {
     updateAuthUI(session);
