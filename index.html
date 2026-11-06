@@ -29,7 +29,7 @@
 
   <header class="topbar">
 
-    <a class="brand" href="#discover">
+    <a class="brand" href="#explore">
       EVERYDAY<span>.</span>
     </a>
 
@@ -67,7 +67,7 @@
     <aside class="app-sidebar">
 
       <div class="sidebar-brand">
-        <a class="brand" href="#discover">
+        <a class="brand" href="#explore">
           EVERYDAY<span>.</span>
         </a>
 
@@ -79,13 +79,13 @@
         <p class="sidebar-nav-label">YOUR EVERYDAY</p>
 
         <a
-          href="#discover"
+          href="#community"
           class="sidebar-link is-active"
-          data-page-link="discover"
+          data-page-link="community"
           aria-current="page"
         >
-          <span class="sidebar-icon">⌂</span>
-          <span>Discover</span>
+          <span class="sidebar-icon">◎</span>
+          <span>Connect</span>
         </a>
 
         <a
@@ -93,35 +93,8 @@
           class="sidebar-link"
           data-page-link="explore"
         >
-          <span class="sidebar-icon">◉</span>
-          <span>Play</span>
-        </a>
-
-        <a
-          href="#learn"
-          class="sidebar-link"
-          data-page-link="learn"
-        >
           <span class="sidebar-icon">⌕</span>
-          <span>Learn</span>
-        </a>
-
-        <a
-          href="#community"
-          class="sidebar-link"
-          data-page-link="community"
-        >
-          <span class="sidebar-icon">◎</span>
-          <span>Connect</span>
-        </a>
-
-        <a
-          href="#create"
-          class="sidebar-link"
-          data-page-link="create"
-        >
-          <span class="sidebar-icon">✎</span>
-          <span>Create</span>
+          <span>Explore</span>
         </a>
 
         <div class="sidebar-divider"></div>
@@ -145,7 +118,7 @@
 
         <p>
           You don't have to do everything today.
-          Just keep discovering.
+          Just keep moving.
         </p>
 
         <span class="sidebar-version">EVERYDAY · YOUR DAILY SPACE</span>
@@ -161,15 +134,159 @@
 
 
       <!-- =================================
-           DISCOVER PAGE
+           CONNECT PAGE
+           Community feed remains owned
+           by social.js
       ================================== -->
 
       <section
         class="page-view is-active"
-        id="discover-page"
-        data-page="discover"
-        aria-label="Discover"
+        id="community-page"
+        data-page="community"
+        aria-label="Connect"
       >
+
+        <div class="page-heading">
+
+          <p class="eyebrow">A PLACE TO CONNECT</p>
+
+          <h1>Little thoughts, shared.</h1>
+
+          <p class="intro-copy">
+            Share something you learned, noticed, created, or thought
+            about today. You never know who might find it interesting.
+          </p>
+
+        </div>
+
+
+        <div class="community-page-layout">
+
+          <div class="feed-column">
+
+            <!--
+              social.js builds the interactive community
+              composer and feed inside this page.
+            -->
+
+            <article class="feed-post community-post" id="community">
+
+              <div class="post-header">
+
+                <div class="post-avatar community-avatar">♡</div>
+
+                <div class="post-author">
+                  <strong>Everyday community</strong>
+                  <span>Thoughts, ideas, and shared moments</span>
+                </div>
+
+                <span class="post-category">CONNECT</span>
+
+              </div>
+
+              <div class="post-content">
+
+                <h3>Share a thought with the community.</h3>
+
+                <p class="muted">
+                  Share a small discovery, a question, or a thought
+                  you'd like others to consider.
+                </p>
+
+                <!-- Legacy form retained for compatibility. -->
+
+                <form id="thoughtForm" class="thought-form">
+
+                  <label class="sr-only" for="thoughtInput">
+                    Your thought
+                  </label>
+
+                  <input
+                    id="thoughtInput"
+                    type="text"
+                    maxlength="300"
+                    placeholder="Share a little thought..."
+                    required
+                  >
+
+                  <button class="primary-button" type="submit">
+                    Share thought
+                  </button>
+
+                </form>
+
+                <p class="notice">
+                  Your thought is saved on this device in guest mode.
+                </p>
+
+              </div>
+
+              <div class="community-feed-heading">
+
+                <h3>From the community</h3>
+
+                <span class="feed-label">SMALL THOUGHTS, SHARED</span>
+
+              </div>
+
+              <div id="communityWall" class="community-wall"></div>
+
+            </article>
+
+          </div>
+
+
+          <aside class="feed-sidebar">
+
+            <article class="sidebar-card">
+
+              <p class="eyebrow">OUR COMMUNITY</p>
+
+              <h3>Different perspectives belong here.</h3>
+
+              <p>
+                You don't need to be an expert to contribute.
+                A thoughtful question or a small observation is enough.
+              </p>
+
+            </article>
+
+
+            <article class="sidebar-card">
+
+              <p class="eyebrow">A GENTLE REMINDER</p>
+
+              <h3>Make room for others.</h3>
+
+              <p>
+                Be curious, respectful, and considerate.
+                Everyone experiences the everyday differently.
+              </p>
+
+            </article>
+
+          </aside>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================
+           EXPLORE PAGE
+           DISCOVER + PLAY COMBINED
+      ================================== -->
+
+      <section
+        class="page-view"
+        id="explore-page"
+        data-page="explore"
+        aria-label="Explore"
+        hidden
+      >
+
+        <!-- EXPLORE INTRO -->
 
         <section class="intro feed-intro">
 
@@ -182,7 +299,7 @@
 
           <p class="intro-copy">
             Find something to try, learn something new, explore an idea,
-            or share a moment with others.
+            or discover a different perspective.
           </p>
 
         </section>
@@ -258,30 +375,28 @@
             Choose a mood and find something that fits your day.
           </p>
 
-          <a href="#explore" class="primary-button explore-link">
-            Find something to play →
-          </a>
-
         </section>
 
 
-        <!-- DISCOVER FEED -->
+        <!-- EXPLORE CONTENT LAYOUT -->
 
-        <section class="discover-layout" aria-label="Your discovery">
+        <section class="discover-layout" aria-label="Explore content">
 
           <div class="feed-column">
 
+            <!-- THOUGHT OF THE DAY -->
+
             <div class="feed-heading">
+
               <div>
                 <p class="eyebrow">A MOMENT TO YOURSELF</p>
                 <h2>A thought for today.</h2>
               </div>
 
               <span class="feed-label">PAUSE & REFLECT</span>
+
             </div>
 
-
-            <!-- THOUGHT OF THE DAY -->
 
             <article class="feed-post thought-post">
 
@@ -341,133 +456,24 @@
                   something you didn't know before.
                 </p>
 
-                <a href="#explore" class="primary-button">
-                  Find something to try →
-                </a>
-
-              </div>
-
-            </article>
-
-          </div>
-
-
-          <!-- DISCOVER SIDEBAR -->
-
-          <aside class="feed-sidebar">
-
-            <article class="sidebar-card progress-card">
-
-              <p class="eyebrow">YOUR EVERYDAY</p>
-
-              <h3>Little steps count.</h3>
-
-              <p id="streakNotice" class="muted">
-                Your completed activities stay on this device in guest mode.
-              </p>
-
-              <div class="stat-row">
-                <strong id="completedCount">0</strong>
-                <span>activities completed</span>
               </div>
 
             </article>
 
 
-            <article class="sidebar-card sidebar-about">
-
-              <p class="eyebrow">THE IDEA</p>
-
-              <h3>Make something of your everyday.</h3>
-
-              <p>
-                Explore, play, learn, create, and connect.
-                Small activities can make room for bigger experiences.
-              </p>
-
-            </article>
-
-
-            <article class="sidebar-card sidebar-principles">
-
-              <p class="eyebrow">A FEW REMINDERS</p>
-
-              <div class="principle-item">
-                <span>01</span>
-                <div>
-                  <strong>Stay curious.</strong>
-                  <p>There is always something new to discover.</p>
-                </div>
-              </div>
-
-              <div class="principle-item">
-                <span>02</span>
-                <div>
-                  <strong>Keep it simple.</strong>
-                  <p>Small moments can make an ordinary day better.</p>
-                </div>
-              </div>
-
-              <div class="principle-item">
-                <span>03</span>
-                <div>
-                  <strong>Stay connected.</strong>
-                  <p>Make room for other perspectives.</p>
-                </div>
-              </div>
-
-            </article>
-
-          </aside>
-
-        </section>
-
-      </section>
-
-
-
-      <!-- =================================
-           PLAY PAGE
-           Existing activity engine
-      ================================== -->
-
-      <section
-        class="page-view"
-        id="explore-page"
-        data-page="explore"
-        aria-label="Play"
-        hidden
-      >
-
-        <div class="page-heading">
-
-          <p class="eyebrow">A LITTLE PLAY GOES A LONG WAY</p>
-
-          <h1>Give your mind something to play with.</h1>
-
-          <p class="intro-copy">
-            Quick challenges, questions, and little activities
-            to make your day more interesting.
-          </p>
-
-        </div>
-
-
-        <div class="explore-layout">
-
-          <div class="feed-column">
+            <!-- ACTIVITY ENGINE -->
 
             <div class="feed-heading">
+
               <div>
                 <p class="eyebrow">ACTIVITY OF THE MOMENT</p>
                 <h2>Something to try.</h2>
               </div>
 
               <span class="feed-label">A LITTLE EVERY DAY</span>
+
             </div>
 
-
-            <!-- ACTIVITY ENGINE -->
 
             <article class="feed-post activity-post" id="activities">
 
@@ -480,7 +486,7 @@
                   <span>Activity of the moment · 5 min</span>
                 </div>
 
-                <span class="post-category">PLAY</span>
+                <span class="post-category">EXPLORE</span>
 
               </div>
 
@@ -533,18 +539,69 @@
           </div>
 
 
+          <!-- EXPLORE SIDEBAR -->
+
           <aside class="feed-sidebar">
 
-            <article class="sidebar-card">
+            <article class="sidebar-card progress-card">
 
-              <p class="eyebrow">A SMALL REMINDER</p>
+              <p class="eyebrow">YOUR EVERYDAY</p>
 
-              <h3>There is no rush.</h3>
+              <h3>Little steps count.</h3>
+
+              <p id="streakNotice" class="muted">
+                Your completed activities stay on this device in guest mode.
+              </p>
+
+              <div class="stat-row">
+                <strong id="completedCount">0</strong>
+                <span>activities completed</span>
+              </div>
+
+            </article>
+
+
+            <article class="sidebar-card sidebar-about">
+
+              <p class="eyebrow">THE IDEA</p>
+
+              <h3>Make something of your everyday.</h3>
 
               <p>
-                You don't have to know everything. Sometimes learning
-                starts with being willing to ask a question.
+                Explore ideas, play, discover, and connect.
+                Small activities can make room for bigger experiences.
               </p>
+
+            </article>
+
+
+            <article class="sidebar-card sidebar-principles">
+
+              <p class="eyebrow">A FEW REMINDERS</p>
+
+              <div class="principle-item">
+                <span>01</span>
+                <div>
+                  <strong>Stay curious.</strong>
+                  <p>There is always something new to discover.</p>
+                </div>
+              </div>
+
+              <div class="principle-item">
+                <span>02</span>
+                <div>
+                  <strong>Keep it simple.</strong>
+                  <p>Small moments can make an ordinary day better.</p>
+                </div>
+              </div>
+
+              <div class="principle-item">
+                <span>03</span>
+                <div>
+                  <strong>Keep exploring.</strong>
+                  <p>Give yourself room to try something different.</p>
+                </div>
+              </div>
 
             </article>
 
@@ -568,420 +625,7 @@
 
           </aside>
 
-        </div>
-
-      </section>
-
-
-
-      <!-- =================================
-           LEARN PAGE
-      ================================== -->
-
-      <section
-        class="page-view"
-        id="learn-page"
-        data-page="learn"
-        aria-label="Learn"
-        hidden
-      >
-
-        <div class="page-heading">
-
-          <p class="eyebrow">ALWAYS SOMETHING TO LEARN</p>
-
-          <h1>Feed your curiosity.</h1>
-
-          <p class="intro-copy">
-            Explore ideas, discover interesting facts, and learn
-            something new in a few minutes.
-          </p>
-
-        </div>
-
-
-        <div class="learn-grid">
-
-          <article class="feed-post learn-feature-card">
-
-            <div class="learn-card-symbol">✦</div>
-
-            <p class="eyebrow">A DIFFERENT PERSPECTIVE</p>
-
-            <h2>Start with a question.</h2>
-
-            <p class="muted">
-              Learning doesn't always begin with a lesson.
-              Sometimes it begins with noticing something
-              and wondering why it happens.
-            </p>
-
-          </article>
-
-
-          <article class="feed-post learn-topic-card">
-
-            <p class="eyebrow">SCIENCE & NATURE</p>
-
-            <div class="learn-card-symbol">⌁</div>
-
-            <h3>The world around you.</h3>
-
-            <p class="muted">
-              Explore nature, the human body, space, and the
-              little things that make our world work.
-            </p>
-
-          </article>
-
-
-          <article class="feed-post learn-topic-card">
-
-            <p class="eyebrow">ART & CULTURE</p>
-
-            <div class="learn-card-symbol">✎</div>
-
-            <h3>Ideas that shape us.</h3>
-
-            <p class="muted">
-              Discover art, history, design, literature,
-              and the stories behind creative work.
-            </p>
-
-          </article>
-
-
-          <article class="feed-post learn-topic-card">
-
-            <p class="eyebrow">PEOPLE & SOCIETY</p>
-
-            <div class="learn-card-symbol">◎</div>
-
-            <h3>Understand different perspectives.</h3>
-
-            <p class="muted">
-              Explore human behavior, everyday life,
-              communication, and the world we share.
-            </p>
-
-          </article>
-
-
-          <article class="feed-post learn-topic-card">
-
-            <p class="eyebrow">EVERYDAY KNOWLEDGE</p>
-
-            <div class="learn-card-symbol">⌕</div>
-
-            <h3>Useful things to know.</h3>
-
-            <p class="muted">
-              Pick up practical knowledge, interesting facts,
-              and ideas you can use in everyday life.
-            </p>
-
-          </article>
-
-        </div>
-
-
-        <article class="feed-post learn-question-card">
-
-          <p class="eyebrow">A QUESTION WORTH THINKING ABOUT</p>
-
-          <h2>What is something you've always wanted to understand?</h2>
-
-          <p class="muted">
-            You don't need to have the answer right away.
-            Give yourself permission to be curious.
-          </p>
-
-          <a href="#community" class="primary-button">
-            Share a question →
-          </a>
-
-        </article>
-
-      </section>
-
-
-
-      <!-- =================================
-           CONNECT PAGE
-           Community feed remains owned
-           by social.js
-      ================================== -->
-
-      <section
-        class="page-view"
-        id="community-page"
-        data-page="community"
-        aria-label="Connect"
-        hidden
-      >
-
-        <div class="page-heading">
-
-          <p class="eyebrow">A PLACE TO CONNECT</p>
-
-          <h1>Little thoughts, shared.</h1>
-
-          <p class="intro-copy">
-            Share something you learned, noticed, created, or thought
-            about today. You never know who might find it interesting.
-          </p>
-
-        </div>
-
-
-        <div class="community-page-layout">
-
-          <div class="feed-column">
-
-            <!--
-              social.js builds the interactive community
-              composer and feed inside this page.
-              The existing community element is preserved
-              for compatibility with the current app.
-            -->
-
-            <article class="feed-post community-post" id="community">
-
-              <div class="post-header">
-
-                <div class="post-avatar community-avatar">♡</div>
-
-                <div class="post-author">
-                  <strong>Everyday community</strong>
-                  <span>Thoughts, ideas, and shared moments</span>
-                </div>
-
-                <span class="post-category">CONNECT</span>
-
-              </div>
-
-
-              <div class="post-content">
-
-                <h3>Share a thought with the community.</h3>
-
-                <p class="muted">
-                  Share a small discovery, a question, or a thought
-                  you'd like others to consider.
-                </p>
-
-                <!-- Legacy form retained for app.js compatibility.
-                     social.js will provide the active community interface. -->
-
-                <form id="thoughtForm" class="thought-form">
-
-                  <label class="sr-only" for="thoughtInput">
-                    Your thought
-                  </label>
-
-                  <input
-                    id="thoughtInput"
-                    type="text"
-                    maxlength="300"
-                    placeholder="Share a little thought..."
-                    required
-                  >
-
-                  <button class="primary-button" type="submit">
-                    Share thought
-                  </button>
-
-                </form>
-
-                <p class="notice">
-                  Your thought is saved on this device in guest mode.
-                </p>
-
-              </div>
-
-
-              <div class="community-feed-heading">
-
-                <h3>From the community</h3>
-
-                <span class="feed-label">SMALL THOUGHTS, SHARED</span>
-
-              </div>
-
-              <div id="communityWall" class="community-wall"></div>
-
-            </article>
-
-          </div>
-
-
-          <aside class="feed-sidebar">
-
-            <article class="sidebar-card">
-
-              <p class="eyebrow">OUR COMMUNITY</p>
-
-              <h3>Different perspectives belong here.</h3>
-
-              <p>
-                You don't need to be an expert to contribute.
-                A thoughtful question or a small observation is enough.
-              </p>
-
-            </article>
-
-
-            <article class="sidebar-card">
-
-              <p class="eyebrow">A GENTLE REMINDER</p>
-
-              <h3>Make room for others.</h3>
-
-              <p>
-                Be curious, respectful, and considerate.
-                Everyone experiences the everyday differently.
-              </p>
-
-            </article>
-
-          </aside>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- =================================
-           CREATE PAGE
-      ================================== -->
-
-      <section
-        class="page-view"
-        id="create-page"
-        data-page="create"
-        aria-label="Create"
-        hidden
-      >
-
-        <div class="page-heading">
-
-          <p class="eyebrow">MAKE SOMETHING OF YOUR IDEAS</p>
-
-          <h1>Give your imagination some room.</h1>
-
-          <p class="intro-copy">
-            Explore creative prompts, experiment with ideas,
-            and make something simply because you can.
-          </p>
-
-        </div>
-
-
-        <div class="create-grid">
-
-          <article class="feed-post create-feature-card">
-
-            <p class="eyebrow">TODAY'S CREATIVE INVITATION</p>
-
-            <div class="create-card-symbol">✧</div>
-
-            <h2>Make something out of an ordinary moment.</h2>
-
-            <p class="muted">
-              Choose an object near you. Imagine it has a story,
-              a secret, or a life of its own. What would it say?
-            </p>
-
-            <a href="#community" class="primary-button">
-              Share what you create →
-            </a>
-
-          </article>
-
-
-          <article class="feed-post create-prompt-card">
-
-            <p class="eyebrow">WRITING PROMPT</p>
-
-            <div class="create-card-symbol">✎</div>
-
-            <h3>Begin with three words.</h3>
-
-            <p class="muted">
-              Pick three unrelated words and turn them into
-              a short story, a poem, or a new idea.
-            </p>
-
-          </article>
-
-
-          <article class="feed-post create-prompt-card">
-
-            <p class="eyebrow">VISUAL PROMPT</p>
-
-            <div class="create-card-symbol">◈</div>
-
-            <h3>Draw what you cannot explain.</h3>
-
-            <p class="muted">
-              Use shapes, lines, and colors to express
-              a feeling or an idea without using words.
-            </p>
-
-          </article>
-
-
-          <article class="feed-post create-prompt-card">
-
-            <p class="eyebrow">IDEA PROMPT</p>
-
-            <div class="create-card-symbol">⌁</div>
-
-            <h3>Improve one small thing.</h3>
-
-            <p class="muted">
-              Look around your everyday environment.
-              What would you redesign, simplify, or make more useful?
-            </p>
-
-          </article>
-
-
-          <article class="feed-post create-prompt-card">
-
-            <p class="eyebrow">PHOTOGRAPHY PROMPT</p>
-
-            <div class="create-card-symbol">▧</div>
-
-            <h3>Find beauty in the details.</h3>
-
-            <p class="muted">
-              Take a closer look at light, texture, shadows,
-              and little details people often overlook.
-            </p>
-
-          </article>
-
-        </div>
-
-
-        <article class="feed-post create-community-invitation">
-
-          <p class="eyebrow">CREATIVITY IS BETTER WHEN SHARED</p>
-
-          <h2>Made something today?</h2>
-
-          <p class="muted">
-            Share your work, show your process, or simply
-            tell the community what inspired you.
-          </p>
-
-          <a href="#community" class="primary-button">
-            Go to Connect →
-          </a>
-
-        </article>
+        </section>
 
       </section>
 
@@ -1259,7 +903,7 @@
 
   <footer>
 
-    <a class="brand" href="#discover">
+    <a class="brand" href="#explore">
       EVERYDAY<span>.</span>
     </a>
 
