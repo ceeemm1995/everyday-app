@@ -1751,12 +1751,10 @@
   const pageLinks = document.querySelectorAll("[data-page-link]");
   const pageViews = document.querySelectorAll(".page-view[data-page]");
 
-  // Old page names are redirected to their new destinations.
+  // Keep compatibility with older page links.
   const pageAliases = {
     discover: "explore",
     play: "explore",
-    learn: "explore",
-    create: "explore",
     connect: "community"
   };
 
@@ -1769,7 +1767,8 @@
   function normalizePageName(pageName) {
     const normalized = String(pageName || "")
       .trim()
-      .toLowerCase();
+      .toLowerCase()
+      .replace(/^#/, "");
 
     return pageAliases[normalized] || normalized;
   }
@@ -1826,10 +1825,13 @@
     });
   }
 
-  // Handle navigation links and in-page links.
-  // This also supports links from Connect, Explore, and My Space.
+  // Handle navigation and internal page links.
   document.addEventListener("click", event => {
-    const link = event.target.closest("a[href^='#']");
+    const target = event.target;
+
+    if (!(target instanceof Element)) return;
+
+    const link = target.closest("a[href^='#']");
 
     if (!link) return;
 
@@ -1848,14 +1850,13 @@
 
   // Browser back and forward.
   window.addEventListener("popstate", () => {
-    const pageName = window.location.hash.replace("#", "");
+    const pageName = window.location.hash.slice(1);
 
     showPage(pageName || "community", false);
   });
 
   // Open Connect by default.
-  // Old bookmarks are redirected to the new sections.
-  const initialPage = window.location.hash.replace("#", "");
+  const initialPage = window.location.hash.slice(1);
 
   showPage(initialPage || "community", false);
 
