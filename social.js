@@ -62,6 +62,11 @@
   let searchTimer = null;
   let searchRequestNumber = 0;
 
+  // Prevent older account requests from overwriting
+  // data belonging to a newly authenticated account.
+  let authChangeVersion = 0;
+  let lastHandledUserId = null;
+
   // =========================================
   // HELPERS
   // =========================================
@@ -252,8 +257,10 @@
       throw new Error("Your profile picture must be 5 MB or smaller.");
     }
 
+    const userId = currentUser.id;
+
     const path =
-      currentUser.id + "/" + makeSafeFileName(file);
+      userId + "/" + makeSafeFileName(file);
 
     const { error: uploadError } = await supabase.storage
       .from(AVATAR_BUCKET)
@@ -266,11 +273,19 @@
       throw uploadError;
     }
 
+    if (currentUser?.id !== userId) {
+      await supabase.storage
+        .from(AVATAR_BUCKET)
+        .remove([path]);
+
+      throw new Error("Your account changed. Please try again.");
+    }
+
     const { error: profileError } = await supabase
       .from("user_profiles")
       .upsert(
         {
-          id: currentUser.id,
+          id: userId,
           avatar_path: path,
           updated_at: new Date().toISOString()
         },
@@ -295,11 +310,12 @@
 
     currentProfile = {
       ...currentProfile,
-      id: currentUser.id,
+      id: userId,
       avatar_path: path
     };
 
     await renderProfileAvatar();
+
     return path;
   }
 
@@ -348,7 +364,9 @@
 
   function createAvatarElement(name, className = "social-post-avatar") {
     const avatar = createElement("div", className, getInitial(name));
+
     avatar.setAttribute("aria-label", name + " profile picture");
+
     return avatar;
   }
 
@@ -428,9 +446,11 @@
     const heading = createElement("div", "social-section-heading");
 
     const headingText = createElement("div");
+
     headingText.appendChild(
       createElement("p", "eyebrow", "COMMUNITY")
     );
+
     headingText.appendChild(
       createElement("h2", "", "Any thoughts?")
     );
@@ -450,6 +470,7 @@
     form.id = "socialComposeForm";
 
     const textarea = document.createElement("textarea");
+
     textarea.id = "socialPostInput";
     textarea.maxLength = MAX_POST_LENGTH;
     textarea.placeholder = "Write something worth sharing...";
@@ -474,6 +495,7 @@
     attachmentLabel.htmlFor = "socialMediaInput";
 
     const mediaInput = document.createElement("input");
+
     mediaInput.type = "file";
     mediaInput.id = "socialMediaInput";
     mediaInput.accept =
@@ -484,6 +506,7 @@
       "div",
       "social-media-preview"
     );
+
     mediaPreview.id = "socialMediaPreview";
 
     attachmentArea.appendChild(attachmentLabel);
@@ -559,9 +582,11 @@
     feedCard.appendChild(feedHeading);
 
     const status = createElement("p", "social-status");
+
     status.id = "socialStatus";
 
     const feed = createElement("div", "social-feed");
+
     feed.id = "socialFeed";
 
     feedCard.appendChild(status);
@@ -589,6 +614,7 @@
     );
 
     const search = document.createElement("input");
+
     search.id = "socialMemberSearch";
     search.type = "search";
     search.placeholder = "Search nicknames...";
@@ -732,6 +758,7 @@
 
     const input = byId("socialPostInput");
     const mediaInput = byId("socialMediaInput");
+
     const button = event.currentTarget.querySelector(
       'button[type="submit"]'
     );
@@ -775,14 +802,22 @@
       };
 
       const posts = getLocalPosts();
+
       posts.unshift(localPost);
       saveLocalPosts(posts);
 
       input.value = "";
-      byId("socialCharacterCount").textContent = "0/1000";
+
+      const counter = byId("socialCharacterCount");
+
+      if (counter) {
+        counter.textContent = "0/1000";
+      }
 
       await loadFeed();
+
       setStatus("Your thought has been saved on this device.");
+
       return;
     }
 
@@ -793,6 +828,7 @@
 
     try {
       const postId = crypto.randomUUID();
+      const userId = currentUser.id;
 
       let mediaPath = null;
       let mediaType = null;
@@ -805,6 +841,10 @@
         uploadedPath = uploaded.path;
       }
 
+      if (currentUser?.id !== userId) {
+        throw new Error("Your account changed. Please try again.");
+      }
+
       const nickname = getNickname(
         currentProfile,
         "Everyday member"
@@ -814,7 +854,7 @@
         .from("community_thoughts")
         .insert({
           id: postId,
-          user_id: currentUser.id,
+          user_id: userId,
           text: text || (
             isVideoType(mediaType)
               ? "Shared a video."
@@ -842,7 +882,11 @@
         mediaInput.value = "";
       }
 
-      byId("socialCharacterCount").textContent = "0/1000";
+      const counter = byId("socialCharacterCount");
+
+      if (counter) {
+        counter.textContent = "0/1000";
+      }
 
       byId("socialMediaPreview")?.replaceChildren();
 
@@ -870,14 +914,19 @@
 
     if (!feed) return;
 
+    const requestedUserId = currentUser?.id || null;
+
     setStatus("Loading community posts...");
 
     const localPosts = getLocalPosts();
 
-    if (!currentUser) {
+    if (!requestedUserId) {
       feedPosts = localPosts;
+
       await renderFeed();
+
       setStatus("");
+
       return;
     }
 
@@ -890,6 +939,8 @@
         ascending: false
       })
       .limit(500);
+
+    if (currentUser?.id !== requestedUserId) return;
 
     if (error) {
       console.error("Could not load community feed:", error);
@@ -910,7 +961,9 @@
 
     await renderFeed();
 
-    setStatus("");
+    if (currentUser?.id === requestedUserId) {
+      setStatus("");
+    }
   }
 
   // =========================================
@@ -1178,6 +1231,7 @@
     if (!text) return;
 
     const parentId = form.dataset.parentId;
+    const userId = currentUser.id;
 
     setButtonLoading(button, true, "Sending...");
 
@@ -1190,7 +1244,7 @@
       const { error } = await supabase
         .from("community_thoughts")
         .insert({
-          user_id: currentUser.id,
+          user_id: userId,
           text,
           author: nickname,
           parent_id: parentId
@@ -1198,7 +1252,10 @@
 
       if (error) throw error;
 
+      if (currentUser?.id !== userId) return;
+
       await loadFeed();
+
       setStatus("Your reply has been shared.");
     } catch (error) {
       console.error("Could not send reply:", error);
@@ -1293,6 +1350,7 @@
       }
 
       input.value = "";
+
       return;
     }
 
@@ -1360,13 +1418,16 @@
     label.htmlFor = "socialProfilePrivacy";
 
     const select = document.createElement("select");
+
     select.id = "socialProfilePrivacy";
 
     const publicOption = document.createElement("option");
+
     publicOption.value = "public";
     publicOption.textContent = "Public";
 
     const privateOption = document.createElement("option");
+
     privateOption.value = "private";
     privateOption.textContent = "Private";
 
@@ -1383,6 +1444,7 @@
     saveButton.id = "socialSavePrivacy";
 
     const feedback = createElement("p", "feedback");
+
     feedback.id = "socialPrivacyFeedback";
 
     settings.appendChild(label);
@@ -1407,6 +1469,7 @@
 
     if (!select) return;
 
+    const userId = currentUser.id;
     const isPrivate = select.value === "private";
 
     setButtonLoading(button, true, "Saving...");
@@ -1416,7 +1479,7 @@
         .from("user_profiles")
         .upsert(
           {
-            id: currentUser.id,
+            id: userId,
             is_private: isPrivate,
             updated_at: new Date().toISOString()
           },
@@ -1426,6 +1489,8 @@
         );
 
       if (error) throw error;
+
+      if (currentUser?.id !== userId) return;
 
       currentProfile = {
         ...currentProfile,
@@ -1456,20 +1521,24 @@
   async function loadCurrentProfile() {
     if (!currentUser) return;
 
+    const userId = currentUser.id;
+
     const { data, error } = await supabase
       .from("user_profiles")
       .select(
         "id,nickname,bio,is_private,avatar_path"
       )
-      .eq("id", currentUser.id)
+      .eq("id", userId)
       .maybeSingle();
+
+    if (currentUser?.id !== userId) return;
 
     if (error) {
       console.error("Could not load profile:", error);
     }
 
     currentProfile = data || {
-      id: currentUser.id,
+      id: userId,
       nickname: "Everyday member",
       bio: "",
       is_private: false,
@@ -1516,20 +1585,29 @@
       return;
     }
 
+    const userId = currentUser.id;
+
     const { data, error } = await supabase
       .from("user_profiles")
       .select("id,nickname,bio,is_private,avatar_path")
       .ilike("nickname", "%" + search + "%")
-      .neq("id", currentUser.id)
+      .neq("id", userId)
       .limit(15);
 
-    if (requestNumber !== searchRequestNumber) return;
+    if (
+      requestNumber !== searchRequestNumber ||
+      currentUser?.id !== userId
+    ) {
+      return;
+    }
 
     if (error) {
       console.error("Member search failed:", error);
+
       results.appendChild(
         createElement("p", "muted", "Could not search members.")
       );
+
       return;
     }
 
@@ -1542,7 +1620,22 @@
     }
 
     for (const profile of data) {
+      if (
+        requestNumber !== searchRequestNumber ||
+        currentUser?.id !== userId
+      ) {
+        return;
+      }
+
       const row = await renderMember(profile);
+
+      if (
+        requestNumber !== searchRequestNumber ||
+        currentUser?.id !== userId
+      ) {
+        return;
+      }
+
       results.appendChild(row);
     }
   }
@@ -1590,22 +1683,20 @@
     row.appendChild(details);
 
     if (currentUser) {
+      const label = getFollowButtonLabel(
+        profile.id,
+        profile.is_private
+      );
+
       const button = createElement(
         "button",
         "secondary-button social-follow-button",
-        getFollowButtonLabel(
-          profile.id,
-          profile.is_private
-        )
+        label
       );
 
       button.type = "button";
       button.dataset.followUser = profile.id;
-      button.disabled =
-        getFollowButtonLabel(
-          profile.id,
-          profile.is_private
-        ) !== "Follow";
+      button.disabled = label !== "Follow";
 
       row.appendChild(button);
     }
@@ -1620,15 +1711,19 @@
   async function loadFollowRelationships() {
     if (!currentUser) return;
 
+    const userId = currentUser.id;
+
     const { data, error } = await supabase
       .from("user_follows")
       .select("id,follower_id,following_id,status")
       .or(
         "follower_id.eq." +
-        currentUser.id +
+        userId +
         ",following_id.eq." +
-        currentUser.id
+        userId
       );
+
+    if (currentUser?.id !== userId) return;
 
     if (error) {
       console.error("Could not load follow relationships:", error);
@@ -1641,29 +1736,33 @@
   async function followMember(userId) {
     if (!currentUser || !userId) return;
 
+    const currentUserId = currentUser.id;
+
     const existing = followRelationships.find(
       (relationship) =>
-        relationship.follower_id === currentUser.id &&
+        relationship.follower_id === currentUserId &&
         relationship.following_id === userId
     );
 
-    if (existing) {
-      return;
-    }
+    if (existing) return;
 
     const { error } = await supabase
       .from("user_follows")
       .insert({
-        follower_id: currentUser.id,
+        follower_id: currentUserId,
         following_id: userId
       });
 
+    if (currentUser?.id !== currentUserId) return;
+
     if (error) {
       console.error("Could not follow member:", error);
+
       setStatus(
         error.message || "Could not follow this member.",
         true
       );
+
       return;
     }
 
@@ -1685,11 +1784,15 @@
   async function loadIncomingRequests() {
     if (!currentUser) return;
 
+    const userId = currentUser.id;
+
     const { data, error } = await supabase
       .from("user_follows")
       .select("id,follower_id,following_id,status")
-      .eq("following_id", currentUser.id)
+      .eq("following_id", userId)
       .eq("status", "pending");
+
+    if (currentUser?.id !== userId) return;
 
     if (error) {
       console.error("Could not load follow requests:", error);
@@ -1722,6 +1825,8 @@
       return;
     }
 
+    const userId = currentUser.id;
+
     const ids = incomingRequests.map(
       (request) => request.follower_id
     );
@@ -1730,6 +1835,8 @@
       .from("user_profiles")
       .select("id,nickname")
       .in("id", ids);
+
+    if (currentUser?.id !== userId) return;
 
     if (error) {
       console.error("Could not load requester profiles:", error);
@@ -1786,6 +1893,10 @@
   }
 
   async function approveRequest(requestId) {
+    if (!currentUser) return;
+
+    const userId = currentUser.id;
+
     const request = incomingRequests.find(
       (item) => item.id === requestId
     );
@@ -1798,7 +1909,9 @@
         status: "accepted"
       })
       .eq("id", requestId)
-      .eq("following_id", currentUser.id);
+      .eq("following_id", userId);
+
+    if (currentUser?.id !== userId) return;
 
     if (error) {
       console.error("Could not approve request:", error);
@@ -1813,11 +1926,17 @@
   }
 
   async function declineRequest(requestId) {
+    if (!currentUser) return;
+
+    const userId = currentUser.id;
+
     const { error } = await supabase
       .from("user_follows")
       .delete()
       .eq("id", requestId)
-      .eq("following_id", currentUser.id);
+      .eq("following_id", userId);
+
+    if (currentUser?.id !== userId) return;
 
     if (error) {
       console.error("Could not decline request:", error);
@@ -1826,6 +1945,7 @@
     }
 
     await loadIncomingRequests();
+
     setStatus("Follow request declined.");
   }
 
@@ -1851,6 +1971,7 @@
       await approveRequest(
         approveButton.dataset.approveRequest
       );
+
       return;
     }
 
@@ -1865,19 +1986,24 @@
   // AUTHENTICATION
   // =========================================
 
-  async function getCurrentSession() {
-    const { data, error } = await supabase.auth.getSession();
+  async function handleAuthChange(session) {
+    const nextUser = session?.user || null;
+    const nextUserId = nextUser?.id || null;
 
-    if (error) {
-      console.error("Could not retrieve session:", error);
+    // Ignore repeated auth events for the same account.
+    // Token refreshes should not reload the entire community.
+    if (nextUserId === lastHandledUserId) {
       return;
     }
 
-    await handleAuthChange(data.session);
-  }
+    lastHandledUserId = nextUserId;
 
-  async function handleAuthChange(session) {
-    currentUser = session?.user || null;
+    const version = ++authChangeVersion;
+
+    currentUser = nextUser;
+
+    // Invalidate any pending member search.
+    searchRequestNumber++;
 
     const notice = byId("socialGuestNotice");
 
@@ -1885,6 +2011,7 @@
       currentProfile = null;
       followRelationships = [];
       incomingRequests = [];
+      feedPosts = [];
 
       if (notice) {
         notice.textContent =
@@ -1892,6 +2019,9 @@
       }
 
       await loadFeed();
+
+      if (version !== authChangeVersion) return;
+
       await renderIncomingRequests();
 
       return;
@@ -1902,10 +2032,24 @@
         "Share your thoughts, upload photos and videos, and connect with the community.";
     }
 
+    // Load account-specific information in sequence.
+    // Check the version after every asynchronous operation.
+
     await loadCurrentProfile();
+
+    if (version !== authChangeVersion) return;
+
     await loadFollowRelationships();
+
+    if (version !== authChangeVersion) return;
+
     await loadIncomingRequests();
+
+    if (version !== authChangeVersion) return;
+
     await loadFeed();
+
+    if (version !== authChangeVersion) return;
 
     const search = byId("socialMemberSearch");
 
@@ -1923,11 +2067,23 @@
     buildProfileAvatarInterface();
     buildProfileSocialInterface();
 
-    getCurrentSession();
+    // Supabase automatically emits INITIAL_SESSION.
+    // We use that event instead of calling getSession()
+    // separately, preventing duplicate initialization.
 
     supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        await handleAuthChange(session);
+      (_event, session) => {
+        // Do not await Supabase operations inside this callback.
+        // Let the auth callback finish before loading account data.
+
+        Promise.resolve()
+          .then(() => handleAuthChange(session))
+          .catch((error) => {
+            console.error(
+              "EVERYDAY social authentication error:",
+              error
+            );
+          });
       }
     );
   }
