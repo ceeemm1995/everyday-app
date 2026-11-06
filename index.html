@@ -135,8 +135,6 @@
 
       <!-- =================================
            CONNECT PAGE
-           Community feed remains owned
-           by social.js
       ================================== -->
 
       <section
@@ -164,11 +162,6 @@
 
           <div class="feed-column">
 
-            <!--
-              social.js builds the interactive community
-              composer and feed inside this page.
-            -->
-
             <article class="feed-post community-post" id="community">
 
               <div class="post-header">
@@ -192,8 +185,6 @@
                   Share a small discovery, a question, or a thought
                   you'd like others to consider.
                 </p>
-
-                <!-- Legacy form retained for compatibility. -->
 
                 <form id="thoughtForm" class="thought-form">
 
@@ -272,10 +263,8 @@
       </section>
 
 
-
       <!-- =================================
            EXPLORE PAGE
-           DISCOVER + PLAY COMBINED
       ================================== -->
 
       <section
@@ -285,8 +274,6 @@
         aria-label="Explore"
         hidden
       >
-
-        <!-- EXPLORE INTRO -->
 
         <section class="intro feed-intro">
 
@@ -378,13 +365,11 @@
         </section>
 
 
-        <!-- EXPLORE CONTENT LAYOUT -->
+        <!-- EXPLORE CONTENT -->
 
         <section class="discover-layout" aria-label="Explore content">
 
           <div class="feed-column">
-
-            <!-- THOUGHT OF THE DAY -->
 
             <div class="feed-heading">
 
@@ -432,8 +417,6 @@
             </article>
 
 
-            <!-- DAILY DISCOVERY -->
-
             <article class="feed-post discover-invitation">
 
               <div class="post-header">
@@ -460,8 +443,6 @@
 
             </article>
 
-
-            <!-- ACTIVITY ENGINE -->
 
             <div class="feed-heading">
 
@@ -628,7 +609,6 @@
         </section>
 
       </section>
-
 
 
       <!-- =================================
@@ -896,7 +876,6 @@
   </div>
 
 
-
   <!-- =================================
        FOOTER
   ================================== -->
@@ -915,14 +894,14 @@
   </footer>
 
 
-
   <!-- =================================
        AUTHENTICATION MODAL
+       EMAIL + PASSWORD AUTHENTICATION
   ================================== -->
 
   <dialog id="authModal">
 
-    <div class="activity-card">
+    <div class="activity-card auth-card">
 
       <div class="card-topline">
 
@@ -934,31 +913,130 @@
 
       </div>
 
-      <h2>Sign in or create an account.</h2>
+      <h2 id="authHeading">Welcome back.</h2>
 
-      <p class="muted">
-        Enter your email and we'll send you a secure sign-in link.
+      <p id="authDescription" class="muted">
+        Sign in to continue where you left off.
       </p>
 
-      <form id="magicLinkForm">
+
+      <!-- AUTHENTICATION MODES -->
+
+      <div class="auth-mode-switch" role="group" aria-label="Account options">
+
+        <button
+          id="showSignInMode"
+          class="auth-mode-button active"
+          type="button"
+          data-auth-mode="signin"
+          aria-pressed="true"
+        >
+          Sign In
+        </button>
+
+        <button
+          id="showSignUpMode"
+          class="auth-mode-button"
+          type="button"
+          data-auth-mode="signup"
+          aria-pressed="false"
+        >
+          Create Account
+        </button>
+
+      </div>
+
+
+      <!-- EMAIL AND PASSWORD FORM -->
+
+      <form id="authForm">
 
         <label for="authEmailInput">Email address</label>
 
         <input
           id="authEmailInput"
+          name="email"
           type="email"
           placeholder="you@example.com"
           autocomplete="email"
           required
         >
 
-        <button class="primary-button" type="submit">
-          Send Magic Link
+
+        <div id="authPasswordGroup">
+
+          <label for="authPasswordInput">Password</label>
+
+          <input
+            id="authPasswordInput"
+            name="password"
+            type="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            minlength="6"
+            required
+          >
+
+        </div>
+
+
+        <!-- ONLY VISIBLE WHEN CREATING AN ACCOUNT -->
+
+        <div id="authConfirmPasswordGroup" hidden>
+
+          <label for="authConfirmPasswordInput">
+            Confirm password
+          </label>
+
+          <input
+            id="authConfirmPasswordInput"
+            name="confirmPassword"
+            type="password"
+            placeholder="Enter your password again"
+            autocomplete="new-password"
+            minlength="6"
+            disabled
+          >
+
+          <p class="notice">
+            Use at least 6 characters for your password.
+          </p>
+
+        </div>
+
+
+        <button
+          id="authSubmitButton"
+          class="primary-button"
+          type="submit"
+        >
+          Sign In
         </button>
 
-        <p id="authStatusMessage" class="feedback" aria-live="polite"></p>
+
+        <button
+          id="forgotPasswordButton"
+          class="text-button"
+          type="button"
+        >
+          Forgot password?
+        </button>
+
+
+        <p
+          id="authStatusMessage"
+          class="feedback"
+          aria-live="polite"
+        ></p>
 
       </form>
+
+
+      <p class="notice">
+        You can continue using EVERYDAY as a guest without creating
+        an account. Your account lets you access synced information
+        across devices.
+      </p>
 
     </div>
 
